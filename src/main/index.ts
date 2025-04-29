@@ -120,8 +120,12 @@ ipcMain.handle('get-sales', async () => {
       items: {
         product: true
       }
+    },
+    order: {
+      createdAt: 'DESC'
     }
   })
+
   return sales.map((sale) => ({
     id: sale.id,
     items: sale.items.map((item) => ({
