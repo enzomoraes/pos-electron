@@ -15,8 +15,8 @@ const CreateProduct = () => {
   const onSubmit = (data: { name: string; price: number; stock: number }) => {
     const newProduct = {
       name: data.name,
-      price: data.price * 100, // Convert to cents
-      stock: data.stock
+      price: data.price * 100,
+      stock: data.stock * 100
     }
 
     window.api.createProduct(newProduct).then(() => {
@@ -56,13 +56,7 @@ const CreateProduct = () => {
         <div style={{ marginBottom: '10px' }}>
           <label>
             Stock:
-            <input
-              type="number"
-              {...register('stock', {
-                required: 'Stock is required',
-                min: { value: 1, message: 'Stock must be at least 1' }
-              })}
-            />
+            <input type="number" step=".5" {...register('stock', { required: true, min: 0 })} />
           </label>
         </div>
         <button

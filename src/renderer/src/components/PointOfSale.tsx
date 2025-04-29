@@ -13,7 +13,7 @@ const PointOfSale = () => {
 
   useEffect(() => {
     window.api.getProducts().then((products) => {
-      setProducts(products)
+      setProducts(products.map((product) => ({ ...product, stock: product.stock / 100 })))
     })
   }, [])
 
@@ -23,20 +23,22 @@ const PointOfSale = () => {
       return
     }
 
+    const quantityToIncrease = product.stock < 1 ? product.stock : 1
+
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.id === product.id)
       if (existingProduct) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantityToIncrease } : item
         )
       }
-      return [...prevCart, { ...product, quantity: 1 }]
+      return [...prevCart, { ...product, quantity: quantityToIncrease }]
     })
 
     setTotal((prevTotal) => prevTotal + product.price / 100)
     setProducts((prevProducts) =>
       prevProducts.map((item) =>
-        item.id === product.id ? { ...item, stock: item.stock - 1 } : item
+        item.id === product.id ? { ...item, stock: item.stock - quantityToIncrease } : item
       )
     )
   }
@@ -46,7 +48,7 @@ const PointOfSale = () => {
     setTotal(0)
 
     window.api.getProducts().then((products) => {
-      setProducts(products)
+      setProducts(products.map((product) => ({ ...product, stock: product.stock / 100 })))
     })
   }
 
@@ -65,13 +67,16 @@ const PointOfSale = () => {
       toast.warn('No more stock available!')
       return
     }
+    const quantityToIncrease = product.stock < 1 ? product.stock : 1
 
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity: item.quantity + 1 } : item))
+      prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + quantityToIncrease } : item
+      )
     )
     setTotal((prevTotal) => prevTotal + product.price / 100)
     setProducts((prevProducts) =>
-      prevProducts.map((p) => (p.id === id ? { ...p, stock: p.stock - 1 } : p))
+      prevProducts.map((p) => (p.id === id ? { ...p, stock: p.stock - quantityToIncrease } : p))
     )
   }
 
@@ -79,17 +84,44 @@ const PointOfSale = () => {
     const cartItem = cart.find((item) => item.id === id)
     if (!cartItem) return
 
-    if (cartItem.quantity === 1) {
+    const quantityToDecrease = cartItem.quantity < 1 ? cartItem.quantity : 1
+
+    if (cartItem.quantity === quantityToDecrease) {
       setCart((prevCart) => prevCart.filter((item) => item.id !== id))
     } else {
       setCart((prevCart) =>
-        prevCart.map((item) => (item.id === id ? { ...item, quantity: item.quantity - 1 } : item))
+        prevCart.map((item) => (item.id === id ? { ...item, quantity: item.quantity - quantityToDecrease } : item))
       )
     }
 
     setTotal((prevTotal) => prevTotal - cartItem.price / 100)
     setProducts((prevProducts) =>
-      prevProducts.map((p) => (p.id === id ? { ...p, stock: p.stock + 1 } : p))
+      prevProducts.map((p) => (p.id === id ? { ...p, stock: p.stock + quantityToDecrease } : p))
+    )
+  }
+
+  const updateQuantity = (id: number, value: number) => {
+    if (value < 0.5) return
+
+    const product = products.find((p) => p.id === id)
+    const cartItem = cart.find((item) => item.id === id)
+    if (!product || !cartItem) return
+
+    const stockAvailable = product.stock + cartItem.quantity // because stock decreased when added to cart
+    const quantityToSet = Math.min(value, stockAvailable)
+
+    const quantityDifference = quantityToSet - cartItem.quantity
+
+    setCart((prevCart) =>
+      prevCart.map((item) => (item.id === id ? { ...item, quantity: quantityToSet } : item))
+    )
+
+    setTotal((prevTotal) => prevTotal + (product.price / 100) * quantityDifference)
+
+    setProducts((prevProducts) =>
+      prevProducts.map((item) =>
+        item.id === id ? { ...item, stock: item.stock - quantityDifference } : item
+      )
     )
   }
 
@@ -112,7 +144,7 @@ const PointOfSale = () => {
 
   return (
     <div style={{ padding: '40px', fontFamily: 'Arial, sans-serif', minHeight: '100vh' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Point of Sale</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Desbrava Vendas</h1>
 
       {/* PRODUCTS GRID */}
       <div
@@ -194,6 +226,8 @@ const PointOfSale = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{item.name}</span>
+
                   <button
                     onClick={() => decreaseQuantity(item.id)}
                     style={{
@@ -208,10 +242,18 @@ const PointOfSale = () => {
                   >
                     –
                   </button>
-
-                  <span>
-                    {item.name} x {item.quantity}
-                  </span>
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    step="0.5"
+                    onChange={(e) => updateQuantity(item.id, Number(e.target.value))}
+                    style={{
+                      width: '60px',
+                      textAlign: 'center',
+                      padding: '4px',
+                      fontSize: '16px'
+                    }}
+                  />
 
                   <button
                     onClick={() => increaseQuantity(item.id)}

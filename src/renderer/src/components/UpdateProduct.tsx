@@ -18,7 +18,7 @@ const UpdateProduct = () => {
     async function fetchProduct() {
       try {
         const product = await window.api.getProduct(parseInt(id!))
-        reset({ name: product.name, price: product.price / 100, stock: product.stock })
+        reset({ name: product.name, price: product.price / 100, stock: product.stock / 100 })
       } catch (error) {
         console.error('Failed to fetch product', error)
         toast.error('Error fetching product!')
@@ -33,7 +33,7 @@ const UpdateProduct = () => {
     const updatedProduct = {
       name: data.name,
       price: data.price * 100,
-      stock: data.stock
+      stock: data.stock * 100
     }
 
     window.api.updateProduct(parseInt(id!), updatedProduct).then(() => {
@@ -68,7 +68,7 @@ const UpdateProduct = () => {
         <div>
           <label>
             Stock:
-            <input type="number" {...register('stock', { required: true, min: 0 })} />
+            <input type="number" step="0.5" {...register('stock', { required: true, min: 0 })} />
           </label>
         </div>
         <button type="submit" style={{ marginTop: '10px' }}>

@@ -44,7 +44,7 @@ const Products = () => {
         {products.map((product) => (
           <li key={product.id} style={{ marginBottom: '10px' }}>
             <span style={{ marginRight: '10px' }}>
-              {product.name} - R${(product.price / 100).toFixed(2)} - #{product.stock}
+              {product.name} - R${(product.price / 100).toFixed(2)} - #{(product.stock / 100)}
             </span>
             <button onClick={ () => handleUpdateClick(product.id) }>Update Product</button>
             <button onClick={ () => handleRemoveClick(product.id) }>Remove Product</button>
