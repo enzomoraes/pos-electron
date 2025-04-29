@@ -75,6 +75,65 @@ ipcMain.handle('update-product', async (_, id, productData) => {
   return product
 })
 
+ipcMain.handle(
+  'sell',
+  async (_, saleData: { items: { productId: number; quantity: number; price: number }[] }) => {
+    const saleRepo = AppDataSource.getRepository('Sale')
+    const saleItemRepo = AppDataSource.getRepository('SaleItem')
+    const productRepo = AppDataSource.getRepository('Product')
+
+    const total = saleData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    // Create a new sale
+    const newSale = saleRepo.create({ total })
+    const savedSale = await saleRepo.save(newSale)
+
+    // Create sale items
+    for (const item of saleData.items) {
+      const quantityToDecrease = item.quantity * 100
+      const product = await productRepo.findOneBy({ id: item.productId })
+      if (!product) {
+        throw new Error(`Product with ID ${item.productId} not found`)
+      }
+      if (product.stock < quantityToDecrease) {
+        throw new Error(`Not enough stock for product ${product.name}`)
+      }
+      product.stock -= quantityToDecrease
+      await productRepo.save(product)
+
+      const saleItem = saleItemRepo.create({
+        ...item,
+        totalPrice: item.price * item.quantity,
+        sale: savedSale,
+        product
+      })
+      await saleItemRepo.save(saleItem)
+    }
+
+    return savedSale
+  }
+)
+
+ipcMain.handle('get-sales', async () => {
+  const saleRepo = AppDataSource.getRepository('Sale')
+  const sales = await saleRepo.find({
+    relations: {
+      items: {
+        product: true
+      }
+    }
+  })
+  return sales.map((sale) => ({
+    id: sale.id,
+    items: sale.items.map((item) => ({
+      name: item.product.name,
+      quantity: item.quantity,
+      price: item.price
+    })),
+    total: sale.total,
+    date: sale.createdAt.toISOString()
+  }))
+})
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

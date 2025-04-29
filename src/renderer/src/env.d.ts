@@ -8,6 +8,8 @@ declare global {
       createProduct: (productData: { name: string; price: number; stock: number }) => Promise<{ name: string; price: number; stock: number }>
       updateProduct: (productId: number, productData: { name: string; price: number; stock: number }) => Promise<{ name: string; price: number; stock: number }>
       removeProduct: (productId: number) => Promise<void>
+      sell: (saleData: { items: { productId: number; quantity: number; price: number }[] }) => Promise<void>
+      getSales: () => Promise<{ id: number; total: number, items: { name: string; quantity: number; price: number }[], date: string }[]>
     }
   }
 }

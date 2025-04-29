@@ -6,9 +6,9 @@ const PointOfSale = () => {
     { id: number; name: string; price: number; stock: number }[]
   >([])
 
-  const [cart, setCart] = useState<{ id: number; name: string; price: number; quantity: number }[]>(
-    []
-  )
+  const [cart, setCart] = useState<
+    { productId: number; name: string; price: number; quantity: number }[]
+  >([])
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
@@ -26,13 +26,23 @@ const PointOfSale = () => {
     const quantityToIncrease = product.stock < 1 ? product.stock : 1
 
     setCart((prevCart) => {
-      const existingProduct = prevCart.find((item) => item.id === product.id)
+      const existingProduct = prevCart.find((item) => item.productId === product.id)
       if (existingProduct) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantityToIncrease } : item
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + quantityToIncrease }
+            : item
         )
       }
-      return [...prevCart, { ...product, quantity: quantityToIncrease }]
+      return [
+        ...prevCart,
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: quantityToIncrease
+        }
+      ]
     })
 
     setTotal((prevTotal) => prevTotal + product.price / 100)
@@ -57,8 +67,22 @@ const PointOfSale = () => {
       toast.warn('Cart is empty. Add products before closing the sale.')
       return
     }
-    clearCart()
-    toast.success('Sale completed successfully!')
+    window.api
+      .sell({
+        items: cart.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      })
+      .then(() => {
+        toast.success('Sale completed successfully!')
+        clearCart()
+      })
+      .catch((err) => {
+        console.error(err)
+        toast.error('Error completing sale. Please try again.')
+      })
   }
 
   const increaseQuantity = (id: number) => {
@@ -71,7 +95,7 @@ const PointOfSale = () => {
 
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + quantityToIncrease } : item
+        item.productId === id ? { ...item, quantity: item.quantity + quantityToIncrease } : item
       )
     )
     setTotal((prevTotal) => prevTotal + product.price / 100)
@@ -81,16 +105,18 @@ const PointOfSale = () => {
   }
 
   const decreaseQuantity = (id: number) => {
-    const cartItem = cart.find((item) => item.id === id)
+    const cartItem = cart.find((item) => item.productId === id)
     if (!cartItem) return
 
     const quantityToDecrease = cartItem.quantity < 1 ? cartItem.quantity : 1
 
     if (cartItem.quantity === quantityToDecrease) {
-      setCart((prevCart) => prevCart.filter((item) => item.id !== id))
+      setCart((prevCart) => prevCart.filter((item) => item.productId !== id))
     } else {
       setCart((prevCart) =>
-        prevCart.map((item) => (item.id === id ? { ...item, quantity: item.quantity - quantityToDecrease } : item))
+        prevCart.map((item) =>
+          item.productId === id ? { ...item, quantity: item.quantity - quantityToDecrease } : item
+        )
       )
     }
 
@@ -104,7 +130,7 @@ const PointOfSale = () => {
     if (value < 0.5) return
 
     const product = products.find((p) => p.id === id)
-    const cartItem = cart.find((item) => item.id === id)
+    const cartItem = cart.find((item) => item.productId === id)
     if (!product || !cartItem) return
 
     const stockAvailable = product.stock + cartItem.quantity // because stock decreased when added to cart
@@ -113,14 +139,14 @@ const PointOfSale = () => {
     const quantityDifference = quantityToSet - cartItem.quantity
 
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity: quantityToSet } : item))
+      prevCart.map((item) => (item.productId === id ? { ...item, quantity: quantityToSet } : item))
     )
 
     setTotal((prevTotal) => prevTotal + (product.price / 100) * quantityDifference)
 
     setProducts((prevProducts) =>
-      prevProducts.map((item) =>
-        item.id === id ? { ...item, stock: item.stock - quantityDifference } : item
+      prevProducts.map((product) =>
+        product.id === id ? { ...product, stock: product.stock - quantityDifference } : product
       )
     )
   }
@@ -216,7 +242,7 @@ const PointOfSale = () => {
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: '20px' }}>
             {cart.map((item) => (
               <li
-                key={item.id}
+                key={item.productId}
                 style={{
                   marginBottom: '10px',
                   display: 'flex',
@@ -229,7 +255,7 @@ const PointOfSale = () => {
                   <span>{item.name}</span>
 
                   <button
-                    onClick={() => decreaseQuantity(item.id)}
+                    onClick={() => decreaseQuantity(item.productId)}
                     style={{
                       backgroundColor: '#ccc',
                       border: 'none',
@@ -246,7 +272,7 @@ const PointOfSale = () => {
                     type="number"
                     value={item.quantity}
                     step="0.5"
-                    onChange={(e) => updateQuantity(item.id, Number(e.target.value))}
+                    onChange={(e) => updateQuantity(item.productId, Number(e.target.value))}
                     style={{
                       width: '60px',
                       textAlign: 'center',
@@ -256,7 +282,7 @@ const PointOfSale = () => {
                   />
 
                   <button
-                    onClick={() => increaseQuantity(item.id)}
+                    onClick={() => increaseQuantity(item.productId)}
                     style={{
                       backgroundColor: '#ccc',
                       border: 'none',

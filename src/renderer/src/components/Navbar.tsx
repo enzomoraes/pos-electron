@@ -37,6 +37,18 @@ const Navbar = () => {
       >
         Products
       </Link>
+      <Link
+        to="/sales"
+        style={{  
+          marginRight: '15px',
+          textDecoration: 'none',
+          color: '#4CAF50',
+          fontWeight: 'bold',
+          fontSize: '16px',
+        }}
+      >
+        Sales
+      </Link>
     </nav>
   );
 };

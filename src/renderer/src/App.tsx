@@ -6,6 +6,7 @@ import UpdateProduct from './components/UpdateProduct'
 import CreateProduct from './components/CreateProduct'
 import { ToastContainer } from 'react-toastify'
 import './scrollbar.css' // import if you use separate file
+import Sales from './components/Sales'
 
 
 function App(): React.JSX.Element {
@@ -23,6 +24,7 @@ function App(): React.JSX.Element {
             <ToastContainer />
             <Routes>
               <Route path="/pos" element={<PointOfSale />} />
+              <Route path="/sales" element={<Sales />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/:id" element={<UpdateProduct />} />
               <Route path="/products/create" element={<CreateProduct />} />
