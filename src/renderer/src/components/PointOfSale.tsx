@@ -169,7 +169,14 @@ const PointOfSale = () => {
   }, [cart])
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'Arial, sans-serif', minHeight: '100vh' }}>
+    <div
+      style={{
+        padding: '40px',
+        fontFamily: 'Arial, sans-serif',
+        minHeight: '100vh',
+        color: '#f1f1f1'
+      }}
+    >
       <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Desbrava Vendas</h1>
 
       {/* PRODUCTS GRID */}
@@ -185,31 +192,31 @@ const PointOfSale = () => {
           <div
             key={product.id}
             style={{
-              border: '1px solid #ddd',
+              border: '1px solid #333',
               borderRadius: '10px',
               padding: '15px',
               textAlign: 'center',
-              backgroundColor: product.stock > 0 ? '#fff' : '#f5f5f5',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+              backgroundColor: product.stock > 0 ? '#1e1e1e' : '#2c2c2c',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
             }}
           >
-            <h3 style={{ marginBottom: '10px', fontSize: '18px', color: '#333' }}>
+            <h3 style={{ marginBottom: '10px', fontSize: '18px', color: '#fff' }}>
               {product.name
                 .split(' ')
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ')}
             </h3>
-            <p style={{ marginBottom: '8px', fontWeight: 'bold', color: '#444' }}>
+            <p style={{ marginBottom: '8px', fontWeight: 'bold', color: '#4caf50' }}>
               R${(product.price / 100).toFixed(2)}
             </p>
-            <p style={{ marginBottom: '15px', color: '#777' }}>
+            <p style={{ marginBottom: '15px', color: '#ccc' }}>
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </p>
             <button
               onClick={() => addToCart(product)}
               disabled={product.stock <= 0}
               style={{
-                backgroundColor: product.stock > 0 ? '#4caf50' : '#ccc',
+                backgroundColor: product.stock > 0 ? '#4caf50' : '#555',
                 color: '#fff',
                 border: 'none',
                 padding: '10px',
@@ -232,12 +239,12 @@ const PointOfSale = () => {
           margin: '0 auto',
           textAlign: 'center',
           padding: '20px',
-          borderTop: '2px solid #eee'
+          borderTop: '2px solid #333'
         }}
       >
         <h2 style={{ marginBottom: '20px' }}>Cart</h2>
         {cart.length === 0 ? (
-          <p>Your cart is empty.</p>
+          <p style={{ color: '#aaa' }}>Your cart is empty.</p>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: '20px' }}>
             {cart.map((item) => (
@@ -245,15 +252,19 @@ const PointOfSale = () => {
                 key={item.productId}
                 style={{
                   marginBottom: '10px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto auto',
                   alignItems: 'center',
+                  textAlign: 'left',
+                  gap: '10px',
                   fontSize: '16px'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>{item.name}</span>
+                {/* Nome do Produto */}
+                <span>{item.name}</span>
 
+                {/* Quantidade com botões */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     onClick={() => decreaseQuantity(item.productId)}
                     style={{
@@ -268,13 +279,14 @@ const PointOfSale = () => {
                   >
                     –
                   </button>
+
                   <input
                     type="number"
                     value={item.quantity}
                     step="0.5"
                     onChange={(e) => updateQuantity(item.productId, Number(e.target.value))}
                     style={{
-                      width: '60px',
+                      width: '50px',
                       textAlign: 'center',
                       padding: '4px',
                       fontSize: '16px'
@@ -302,7 +314,7 @@ const PointOfSale = () => {
             ))}
           </ul>
         )}
-        <h3 style={{ marginBottom: '20px' }}>Total: R${total.toFixed(2)}</h3>
+        <h3 style={{ marginBottom: '20px', color: '#4caf50' }}>Total: R${total.toFixed(2)}</h3>
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button

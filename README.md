@@ -1,6 +1,15 @@
 # pos-electron
 
-An Electron application with React and TypeScript
+## About the Project
+
+`pos-electron` is a Point of Sale (POS) application built using Electron, designed to provide a seamless and efficient interface for managing sales transactions. It leverages modern web technologies to deliver a desktop application experience.
+
+### Core Technologies
+
+- **ElectronVite**: For building cross-platform desktop applications using web technologies.
+- **React**: For building the user interface with reusable components.
+- **TypeORM**: For database management and object-relational mapping.
+- **SQLite**: For lightweight and efficient database storage, ideal for local data persistence.
 
 ## Recommended IDE Setup
 
@@ -23,13 +32,17 @@ $ npm run dev
 ### Build
 
 ```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
+docker run --rm -ti \
+ --env-file <(env | grep -iE 'DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS_TAG|TRAVIS|TRAVIS_REPO_|TRAVIS_BUILD_|TRAVIS_BRANCH|TRAVIS_PULL_REQUEST_|APPVEYOR_|CSC_|GH_|GITHUB_|BT_|AWS_|STRIP|BUILD_') \
+ --env ELECTRON_CACHE="/root/.cache/electron" \
+ --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
+ --network="host" \
+ -v ${PWD}:/project \
+ -v ${PWD##*/}-node-modules:/project/node_modules \
+ -v ~/.cache/electron:/root/.cache/electron \
+ -v ~/.cache/electron-builder:/root/.cache/electron-builder \
+ electronuserland/builder:wine
 ```
-# pos-electron
+then 
+
+`npm install && npm run build:linux`

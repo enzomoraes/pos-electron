@@ -22,28 +22,30 @@ const Sales = () => {
         padding: '40px 20px',
         maxWidth: '800px',
         margin: '0 auto',
-        fontFamily: 'Arial, sans-serif'
+        fontFamily: 'Arial, sans-serif',
+        color: '#f1f1f1',
+        borderRadius: '8px'
       }}
     >
-      <h1 style={{ textAlign: 'center', marginBottom: '40px', color: "inherit" }}>Sales History</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: '40px' }}>Sales History</h1>
 
       {sales.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '18px' }}>No sales found.</p>
+        <p style={{ textAlign: 'center', fontSize: '18px', color: '#aaa' }}>No sales found.</p>
       ) : (
-        <ul style={{ listStyleType: 'none', padding: 0, margin: 0, color: '#444' }}>
+        <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
           {sales.map((sale) => (
             <li
               key={sale.id}
               style={{
-                backgroundColor: '#f9f9f9',
+                backgroundColor: '#1e1e1e',
                 marginBottom: '20px',
                 padding: '20px',
                 borderRadius: '10px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
               }}
             >
-              <h2 style={{ margin: '0 0 10px 0' }}>Sale #{sale.id}</h2>
-              <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#666' }}>
+              <h2 style={{ margin: '0 0 10px 0', fontSize: '20px' }}>Sale #{sale.id}</h2>
+              <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
                 Date: {new Date(sale.date).toLocaleString()}
               </p>
 
@@ -51,7 +53,7 @@ const Sales = () => {
                 {sale.items.map((item, index) => (
                   <li
                     key={index}
-                    style={{ marginBottom: '6px', fontSize: '15px' }}
+                    style={{ marginBottom: '6px', fontSize: '15px', color: '#e0e0e0' }}
                   >
                     • {item.name} — Quantity: {item.quantity} — R$
                     {(item.price / 100).toFixed(2)}
