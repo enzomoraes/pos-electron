@@ -2,9 +2,11 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { useProducts } from '../hooks/useProducts'
 
 const UpdateProduct = () => {
   const { id } = useParams<{ id: string }>()
+  const { updateProduct, fetchProductById } = useProducts()
   const navigate = useNavigate()
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -17,8 +19,8 @@ const UpdateProduct = () => {
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const product = await window.api.getProduct(parseInt(id!))
-        reset({ name: product.name, price: product.price / 100, stock: product.stock / 100 })
+        const product = await fetchProductById(parseInt(id!))
+        reset(product)
       } catch (error) {
         console.error('Failed to fetch product', error)
         toast.error('Error fetching product!')
@@ -29,17 +31,10 @@ const UpdateProduct = () => {
     fetchProduct()
   }, [id, reset, navigate])
 
-  const onSubmit = (data: { name: string; price: number; stock: number }) => {
-    const updatedProduct = {
-      name: data.name,
-      price: data.price * 100,
-      stock: data.stock * 100
-    }
-
-    window.api.updateProduct(parseInt(id!), updatedProduct).then(() => {
-      toast.success('Product updated successfully!')
-      navigate('/products')
-    })
+  const onSubmit = async (data: { name: string; price: number; stock: number }) => {
+    await updateProduct(parseInt(id!), data)
+    toast.success('Product updated successfully!')
+    navigate('/products')
   }
 
   return (

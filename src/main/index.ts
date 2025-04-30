@@ -126,16 +126,7 @@ ipcMain.handle('get-sales', async () => {
     }
   })
 
-  return sales.map((sale) => ({
-    id: sale.id,
-    items: sale.items.map((item) => ({
-      name: item.product.name,
-      quantity: item.quantity,
-      price: item.price
-    })),
-    total: sale.total,
-    date: sale.createdAt.toISOString()
-  }))
+  return sales
 })
 
 // This method will be called when Electron has finished

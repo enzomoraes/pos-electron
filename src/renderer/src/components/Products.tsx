@@ -1,36 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
+import { confirmAlert } from 'react-confirm-alert'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { useProducts } from '../hooks/useProducts'
 
 const Products = () => {
   const navigate = useNavigate()
-  const [products, setProducts] = useState(
-    [] as {
-      id: number
-      name: string
-      price: number
-      stock: number
-    }[]
-  )
+  const { products, setProducts, refreshProducts, removeProduct } = useProducts()
 
   useEffect(() => {
-    window.api.getProducts().then((products) => {
-      setProducts(products)
-    })
+    refreshProducts()
   }, [])
 
-  const handleUpdateClick = (productId: number) => {
-    navigate(`/products/${productId}`)
-  }
+  const handleUpdateClick = useCallback(
+    (productId: number) => {
+      navigate(`/products/${productId}`)
+    },
+    [navigate]
+  )
 
-  const handleRemoveClick = (productId: number) => {
-    if (window.confirm('Are you sure you want to remove this product?')) {
-      window.api.removeProduct(productId).then(() => {
-        setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId))
-        toast.success('Product removed successfully!')
+  const handleRemoveClick = useCallback(
+    (productId: number) => {
+      confirmAlert({
+        title: 'Remover produto',
+        message: 'Tem certeza que deseja remover este produto?',
+        buttons: [
+          {
+            label: 'Sim',
+            onClick: () => removeProduct(productId)
+          },
+          {
+            label: 'Não',
+            onClick: () => {}
+          }
+        ]
       })
-    }
-  }
+    },
+    [setProducts]
+  )
 
   return (
     <div
@@ -83,7 +89,7 @@ const Products = () => {
               <div>
                 <strong>{product.name}</strong>
                 <div style={{ fontSize: '14px', color: '#ccc' }}>
-                  R${(product.price / 100).toFixed(2)} • Stock: {(product.stock / 100).toFixed(2)}
+                  R${(product.price / 100).toFixed(2)} • Stock: {(product.stock).toFixed(2)}
                 </div>
               </div>
               <div>

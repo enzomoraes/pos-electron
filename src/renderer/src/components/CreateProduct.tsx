@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
+import { useProducts } from '../hooks/useProducts'
 
 const CreateProduct = () => {
   const navigate = useNavigate()
-  const { register, handleSubmit, reset } = useForm({
+  const { createProduct } = useProducts()
+  const { register, handleSubmit } = useForm({
     defaultValues: {
       name: '',
       price: 0,
@@ -12,18 +14,10 @@ const CreateProduct = () => {
     }
   })
 
-  const onSubmit = (data: { name: string; price: number; stock: number }) => {
-    const newProduct = {
-      name: data.name,
-      price: data.price * 100,
-      stock: data.stock * 100
-    }
-
-    window.api.createProduct(newProduct).then(() => {
-      toast.success('Product created successfully!')
-      reset()
-      navigate('/products')
-    })
+  const onSubmit = async (data: { name: string; price: number; stock: number }) => {
+    await createProduct(data)
+    toast.success('Product created successfully!')
+    navigate('/products')
   }
 
   return (

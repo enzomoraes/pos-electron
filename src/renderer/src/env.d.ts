@@ -1,15 +1,27 @@
 /// <reference types="vite/client" />
-export { }
+
+import { Product } from '../../main/entities/Product'
+
+export {}
 declare global {
   interface Window {
     api: {
-      getProducts: () => Promise<{ id: number; name: string; price: number; stock: number }[]>
-      getProduct: (productId: number) => Promise<{ id: number; name: string; price: number; stock: number }>
-      createProduct: (productData: { name: string; price: number; stock: number }) => Promise<{ name: string; price: number; stock: number }>
-      updateProduct: (productId: number, productData: { name: string; price: number; stock: number }) => Promise<{ name: string; price: number; stock: number }>
+      getProducts: () => Promise<Product[]>
+      getProduct: (productId: number) => Promise<Product>
+      createProduct: (productData: {
+        name: string
+        price: number
+        stock: number
+      }) => Promise<{ name: string; price: number; stock: number }>
+      updateProduct: (
+        productId: number,
+        productData: { name: string; price: number; stock: number }
+      ) => Promise<{ name: string; price: number; stock: number }>
       removeProduct: (productId: number) => Promise<void>
-      sell: (saleData: { items: { productId: number; quantity: number; price: number }[] }) => Promise<void>
-      getSales: () => Promise<{ id: number; total: number, items: { name: string; quantity: number; price: number }[], date: string }[]>
+      sell: (saleData: {
+        items: { productId: number; quantity: number; price: number }[]
+      }) => Promise<void>
+      getSales: () => Promise<Sale[]>
     }
   }
 }

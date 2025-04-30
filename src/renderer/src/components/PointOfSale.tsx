@@ -1,201 +1,79 @@
-import { useEffect, useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { toast } from 'react-toastify'
+import { useProducts } from '../hooks/useProducts'
+import { useCart } from '../hooks/useCart'
+import { useSaleShortcuts } from '../hooks/useSalesShortcuts'
 
-const PointOfSale = () => {
-  const [products, setProducts] = useState<
-    { id: number; name: string; price: number; stock: number }[]
-  >([])
+const PointOfSale: React.FC = () => {
+  const { products, setProducts, refreshProducts } = useProducts()
+  const {
+    cart,
+    addToCart,
+    clearCart: clearCartHook,
+    increaseQuantity,
+    decreaseQuantity,
+    updateQuantity,
+    changePrice,
+    closeSale: closeSaleHook,
+    total
+  } = useCart(products, setProducts)
 
-  const [cart, setCart] = useState<
-    { productId: number; name: string; price: number; quantity: number }[]
-  >([])
-  const [total, setTotal] = useState(0)
   const [editingPriceId, setEditingPriceId] = useState<number | null>(null)
   const [priceInputValue, setPriceInputValue] = useState<string>('')
+  const [editingQtyId, setEditingQtyId] = useState<number | null>(null)
+  const [qtyInputValue, setQtyInputValue] = useState<string>('')
 
-  useEffect(() => {
-    window.api.getProducts().then((products) => {
-      setProducts(products.map((product) => ({ ...product, stock: product.stock / 100 })))
-    })
+  // Wrap clear and sale to also refresh products
+  const handleClearCart = useCallback(() => {
+    clearCartHook()
+    refreshProducts()
+  }, [clearCartHook, refreshProducts])
+
+  const handleCloseSale = useCallback(() => {
+    closeSaleHook()
+    refreshProducts()
+  }, [closeSaleHook, refreshProducts])
+
+  // Keyboard shortcuts
+  useSaleShortcuts(handleClearCart, handleCloseSale)
+
+  // Price editing handlers
+  const handlePriceClick = useCallback((id: number, unitPrice: number) => {
+    setEditingPriceId(id)
+    setPriceInputValue(unitPrice.toFixed(2))
   }, [])
 
-  const addToCart = (product: { id: number; name: string; price: number; stock: number }) => {
-    if (product.stock <= 0) {
-      toast.warn(`${product.name} is out of stock!`)
-      return
-    }
-
-    const quantityToIncrease = product.stock < 1 ? product.stock : 1
-    const existingProduct = cart.find((item) => item.productId === product.id)
-
-    setCart((prevCart) => {
-      if (existingProduct) {
-        return prevCart.map((item) =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + quantityToIncrease }
-            : item
-        )
+  const commitPriceChange = useCallback(
+    (itemId: number) => {
+      if (priceInputValue.trim() === '' || isNaN(Number(priceInputValue))) {
+        toast.error('Invalid price')
+        return
       }
-      return [
-        ...prevCart,
-        {
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: quantityToIncrease
-        }
-      ]
-    })
+      const newUnitPrice = Number(priceInputValue)
+      changePrice(itemId, Math.round(newUnitPrice * 100))
+      setEditingPriceId(null)
+    },
+    [priceInputValue, changePrice]
+  )
 
-    setTotal((prevTotal) => prevTotal + (existingProduct ?? product).price / 100)
-    setProducts((prevProducts) =>
-      prevProducts.map((item) =>
-        item.id === product.id ? { ...item, stock: item.stock - quantityToIncrease } : item
-      )
-    )
-  }
+  // Quantity editing handlers
+  const handleQtyClick = useCallback((id: number, quantity: number) => {
+    setEditingQtyId(id)
+    setQtyInputValue(quantity.toString())
+  }, [])
 
-  const clearCart = () => {
-    setCart([])
-    setTotal(0)
-
-    window.api.getProducts().then((products) => {
-      setProducts(products.map((product) => ({ ...product, stock: product.stock / 100 })))
-    })
-  }
-
-  const closeSale = () => {
-    if (cart.length === 0) {
-      toast.warn('Cart is empty. Add products before closing the sale.')
-      return
-    }
-    window.api
-      .sell({
-        items: cart.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.price
-        }))
-      })
-      .then(() => {
-        toast.success('Sale completed successfully!')
-        clearCart()
-      })
-      .catch((err) => {
-        console.error(err)
-        toast.error('Error completing sale. Please try again.')
-      })
-  }
-
-  const increaseQuantity = (id: number) => {
-    const product = products.find((p) => p.id === id)
-    const cartItem = cart.find((item) => item.productId === id)
-    if (!product || !cartItem || product.stock <= 0) {
-      toast.warn('No more stock available!')
-      return
-    }
-    const quantityToIncrease = product.stock < 1 ? product.stock : 1
-
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productId === id ? { ...item, quantity: item.quantity + quantityToIncrease } : item
-      )
-    )
-    setTotal((prevTotal) => prevTotal + cartItem.price / 100)
-    setProducts((prevProducts) =>
-      prevProducts.map((p) => (p.id === id ? { ...p, stock: p.stock - quantityToIncrease } : p))
-    )
-  }
-
-  const decreaseQuantity = (id: number) => {
-    const cartItem = cart.find((item) => item.productId === id)
-    if (!cartItem) return
-
-    const quantityToDecrease = cartItem.quantity < 1 ? cartItem.quantity : 1
-
-    if (cartItem.quantity === quantityToDecrease) {
-      setCart((prevCart) => prevCart.filter((item) => item.productId !== id))
-    } else {
-      setCart((prevCart) =>
-        prevCart.map((item) =>
-          item.productId === id ? { ...item, quantity: item.quantity - quantityToDecrease } : item
-        )
-      )
-    }
-
-    setTotal((prevTotal) => prevTotal - cartItem.price / 100)
-    setProducts((prevProducts) =>
-      prevProducts.map((p) => (p.id === id ? { ...p, stock: p.stock + quantityToDecrease } : p))
-    )
-  }
-
-  const updateQuantity = (id: number, value: number) => {
-    if (value < 0.5) return
-
-    const product = products.find((p) => p.id === id)
-    const cartItem = cart.find((item) => item.productId === id)
-    if (!product || !cartItem) return
-
-    const stockAvailable = product.stock + cartItem.quantity // because stock decreased when added to cart
-    const quantityToSet = Math.min(value, stockAvailable)
-
-    const quantityDifference = quantityToSet - cartItem.quantity
-
-    setCart((prevCart) =>
-      prevCart.map((item) => (item.productId === id ? { ...item, quantity: quantityToSet } : item))
-    )
-
-    setTotal((prevTotal) => prevTotal + (product.price / 100) * quantityDifference)
-
-    setProducts((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === id ? { ...product, stock: product.stock - quantityDifference } : product
-      )
-    )
-  }
-
-  const handlePriceClick = (itemId: number, unitPrice: number) => {
-    setEditingPriceId(itemId)
-    // display per-item price in R$ format
-    setPriceInputValue(unitPrice.toFixed(2))
-  }
-
-  const commitPriceChange = (itemId: number) => {
-    if (priceInputValue.trim() === '' || isNaN(Number(priceInputValue))) {
-      toast.error('Invalid price')
-      return
-    }
-    const newUnitPrice = Number(priceInputValue)
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productId === itemId ? { ...item, price: Math.round(newUnitPrice * 100) } : item
-      )
-    )
-    // recalc total across all items
-    const updatedCart = cart.map((item) =>
-      item.productId === itemId ? { ...item, price: Math.round(newUnitPrice * 100) } : item
-    )
-    const newTotal = updatedCart.reduce((sum, item) => sum + (item.price * item.quantity) / 100, 0)
-    setTotal(newTotal)
-    setEditingPriceId(null)
-  }
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'F5') {
-        event.preventDefault()
-        closeSale()
+  const commitQtyChange = useCallback(
+    (itemId: number) => {
+      const val = Number(qtyInputValue)
+      if (qtyInputValue.trim() === '' || isNaN(val) || val < 0) {
+        toast.error('Invalid quantity')
+        return
       }
-      if (event.key === 'F3') {
-        event.preventDefault()
-        clearCart()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [cart])
+      updateQuantity(itemId, val)
+      setEditingQtyId(null)
+    },
+    [qtyInputValue, updateQuantity]
+  )
 
   return (
     <div
@@ -232,7 +110,7 @@ const PointOfSale = () => {
             <h3 style={{ marginBottom: '10px', fontSize: '18px', color: '#fff' }}>
               {product.name
                 .split(' ')
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(' ')}
             </h3>
             <p style={{ marginBottom: '8px', fontWeight: 'bold', color: '#4caf50' }}>
@@ -278,10 +156,9 @@ const PointOfSale = () => {
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: '20px' }}>
             {cart.map((item) => {
               const unitPrice = item.price / 100
-
               return (
                 <li
-                  key={item.productId}
+                  key={item.product.id}
                   style={{
                     marginBottom: '10px',
                     display: 'grid',
@@ -292,13 +169,12 @@ const PointOfSale = () => {
                     fontSize: '16px'
                   }}
                 >
-                  {/* Nome do Produto */}
-                  <span>{item.name}</span>
+                  <span>{item.product.name}</span>
 
-                  {/* Quantidade com botões */}
+                  {/* Quantity with commit-on-blur */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
-                      onClick={() => decreaseQuantity(item.productId)}
+                      onClick={() => decreaseQuantity(item.product.id)}
                       style={{
                         backgroundColor: '#ccc',
                         border: 'none',
@@ -312,21 +188,31 @@ const PointOfSale = () => {
                       –
                     </button>
 
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      step="0.5"
-                      onChange={(e) => updateQuantity(item.productId, Number(e.target.value))}
-                      style={{
-                        width: '50px',
-                        textAlign: 'center',
-                        padding: '4px',
-                        fontSize: '16px'
-                      }}
-                    />
+                    {editingQtyId === item.product.id ? (
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={qtyInputValue}
+                        onChange={(e) => setQtyInputValue(e.target.value)}
+                        onBlur={() => commitQtyChange(item.product.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitQtyChange(item.product.id)
+                          if (e.key === 'Escape') setEditingQtyId(null)
+                        }}
+                        style={{ width: '60px', textAlign: 'center', padding: '4px', fontSize: '16px' }}
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        onClick={() => handleQtyClick(item.product.id, item.quantity)}
+                        style={{ width: '60px', display: 'inline-block', textAlign: 'center', cursor: 'pointer', color: '#4caf50' }}
+                      >
+                        {item.quantity}
+                      </span>
+                    )}
 
                     <button
-                      onClick={() => increaseQuantity(item.productId)}
+                      onClick={() => increaseQuantity(item.product.id)}
                       style={{
                         backgroundColor: '#ccc',
                         border: 'none',
@@ -341,29 +227,24 @@ const PointOfSale = () => {
                     </button>
                   </div>
 
-                  {/* Editable unit price */}
-                  {editingPriceId === item.productId ? (
+                  {/* Price */}
+                  {editingPriceId === item.product.id ? (
                     <input
                       type="number"
                       step="0.01"
                       value={priceInputValue}
                       onChange={(e) => setPriceInputValue(e.target.value)}
-                      onBlur={() => commitPriceChange(item.productId)}
+                      onBlur={() => commitPriceChange(item.product.id)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitPriceChange(item.productId)
+                        if (e.key === 'Enter') commitPriceChange(item.product.id)
                         if (e.key === 'Escape') setEditingPriceId(null)
                       }}
-                      style={{
-                        width: '80px',
-                        textAlign: 'center',
-                        padding: '4px',
-                        fontSize: '16px'
-                      }}
+                      style={{ width: '80px', textAlign: 'center', padding: '4px', fontSize: '16px' }}
                       autoFocus
                     />
                   ) : (
                     <span
-                      onClick={() => handlePriceClick(item.productId, unitPrice)}
+                      onClick={() => handlePriceClick(item.product.id, unitPrice)}
                       style={{ cursor: 'pointer', color: '#4caf50' }}
                     >
                       R${unitPrice.toFixed(2)}
@@ -380,7 +261,7 @@ const PointOfSale = () => {
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button
-            onClick={clearCart}
+            onClick={handleClearCart}
             style={{
               backgroundColor: '#ff4d4d',
               color: '#fff',
@@ -394,7 +275,7 @@ const PointOfSale = () => {
             Clear Cart (F3)
           </button>
           <button
-            onClick={closeSale}
+            onClick={handleCloseSale}
             style={{
               backgroundColor: '#4caf50',
               color: '#fff',

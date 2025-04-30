@@ -1,20 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useSales } from '../hooks/useSales'
 
 const Sales = () => {
-  const [sales, setSales] = useState<
-    {
-      id: number
-      items: { name: string; quantity: number; price: number }[]
-      total: number
-      date: string
-    }[]
-  >([])
+  const { sales, fetchSales } = useSales()
 
   useEffect(() => {
-    window.api.getSales().then((fetchedSales) => {
-      setSales(fetchedSales)
-    })
-  }, [])
+    fetchSales()
+  }, [fetchSales])
 
   return (
     <div
@@ -46,7 +38,7 @@ const Sales = () => {
             >
               <h2 style={{ margin: '0 0 10px 0', fontSize: '20px' }}>Sale #{sale.id}</h2>
               <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
-                Date: {new Date(sale.date).toLocaleString()}
+                Date: { sale.createdAt.toLocaleDateString()} - {sale.createdAt.toLocaleTimeString()}
               </p>
 
               <ul style={{ paddingLeft: '20px', marginBottom: '16px' }}>
@@ -55,7 +47,7 @@ const Sales = () => {
                     key={index}
                     style={{ marginBottom: '6px', fontSize: '15px', color: '#e0e0e0' }}
                   >
-                    • {item.name} — Quantity: {item.quantity} — R$
+                    • {item.product.name} — Quantity: {item.quantity} — R$
                     {(item.price / 100).toFixed(2)}
                   </li>
                 ))}

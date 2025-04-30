@@ -29,11 +29,12 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-updater": "^6.3.9",
+    "react-confirm-alert": "^3.0.6",
     "react-hook-form": "^7.56.1",
     "react-toastify": "^11.0.5",
+    "reflect-metadata": "^0.2.2",
     "sqlite3": "^5.1.7",
-    "typeorm": "^0.3.22",
-    "reflect-metadata": "^0.2.2"
+    "typeorm": "^0.3.22"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
