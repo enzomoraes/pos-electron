@@ -22,6 +22,8 @@ declare global {
         items: { productId: number; quantity: number; price: number }[]
       }) => Promise<void>
       getSales: () => Promise<Sale[]>
+      getSale: (id: number) => Promise<Sale>
+      print: (message: string) => Promise<void>
     }
   }
 }

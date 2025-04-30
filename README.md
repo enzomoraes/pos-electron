@@ -44,5 +44,6 @@ docker run --rm -ti \
  electronuserland/builder:wine
 ```
 then 
-
+`apt-get update`
+`apt-get install -y build-essential pkg-config libudev-dev libusb-1.0-0-dev`
 `npm install && npm run build:linux`

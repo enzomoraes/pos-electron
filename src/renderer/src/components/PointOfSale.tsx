@@ -84,7 +84,7 @@ const PointOfSale: React.FC = () => {
         color: '#f1f1f1'
       }}
     >
-      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Desbrava Vendas</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>ClickPOS</h1>
 
       {/* PRODUCTS GRID */}
       <div
@@ -169,7 +169,12 @@ const PointOfSale: React.FC = () => {
                     fontSize: '16px'
                   }}
                 >
-                  <span>{item.product.name}</span>
+                  <span>
+                    {item.product.name
+                      .split(' ')
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join(' ')}
+                  </span>
 
                   {/* Quantity with commit-on-blur */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -199,13 +204,24 @@ const PointOfSale: React.FC = () => {
                           if (e.key === 'Enter') commitQtyChange(item.product.id)
                           if (e.key === 'Escape') setEditingQtyId(null)
                         }}
-                        style={{ width: '60px', textAlign: 'center', padding: '4px', fontSize: '16px' }}
+                        style={{
+                          width: '60px',
+                          textAlign: 'center',
+                          padding: '4px',
+                          fontSize: '16px'
+                        }}
                         autoFocus
                       />
                     ) : (
                       <span
                         onClick={() => handleQtyClick(item.product.id, item.quantity)}
-                        style={{ width: '60px', display: 'inline-block', textAlign: 'center', cursor: 'pointer', color: '#4caf50' }}
+                        style={{
+                          width: '60px',
+                          display: 'inline-block',
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          color: '#4caf50'
+                        }}
                       >
                         {item.quantity}
                       </span>
@@ -239,7 +255,12 @@ const PointOfSale: React.FC = () => {
                         if (e.key === 'Enter') commitPriceChange(item.product.id)
                         if (e.key === 'Escape') setEditingPriceId(null)
                       }}
-                      style={{ width: '80px', textAlign: 'center', padding: '4px', fontSize: '16px' }}
+                      style={{
+                        width: '80px',
+                        textAlign: 'center',
+                        padding: '4px',
+                        fontSize: '16px'
+                      }}
                       autoFocus
                     />
                   ) : (

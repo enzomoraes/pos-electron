@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import { AppDataSource } from './database/database'
+import { print } from './printer'
 
 function createWindow(): void {
   // Create the browser window.
@@ -62,7 +63,6 @@ ipcMain.handle('get-product', async (_, productId) => {
 })
 
 ipcMain.handle('update-product', async (_, id, productData) => {
-  console.log('Update product data:', productData)
   const productRepo = AppDataSource.getRepository('Product')
   const product = await productRepo.findOneBy({ id })
   if (!product) {
@@ -127,6 +127,27 @@ ipcMain.handle('get-sales', async () => {
   })
 
   return sales
+})
+
+ipcMain.handle('get-sale', async (_, id: number) => {
+  const saleRepo = AppDataSource.getRepository('Sale')
+  const sale = await saleRepo.findOne({
+    where: { id },
+    relations: {
+      items: {
+        product: true
+      }
+    },
+    order: {
+      createdAt: 'DESC'
+    }
+  })
+
+  return sale
+})
+
+ipcMain.handle('print', async (_, text: string) => {
+  await print(text)
 })
 
 // This method will be called when Electron has finished

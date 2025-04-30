@@ -83,13 +83,19 @@ const Products = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                border: '1px solid #333'
               }}
             >
               <div>
-                <strong>{product.name}</strong>
+                <strong>
+                  {product.name
+                    .split(' ')
+                    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                    .join(' ')}
+                </strong>
                 <div style={{ fontSize: '14px', color: '#ccc' }}>
-                  R${(product.price / 100).toFixed(2)} • Stock: {(product.stock).toFixed(2)}
+                  R${(product.price / 100).toFixed(2)} • Stock: {product.stock.toFixed(2)}
                 </div>
               </div>
               <div>
