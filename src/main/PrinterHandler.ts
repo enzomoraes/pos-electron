@@ -18,7 +18,11 @@ async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<B
   const availableItemWidth = PRINT_WIDTH - maxQtyWidth - 4
 
   const sanitizeText = (text: string): string => {
-    return text.replace(/[^\x00-\x7F]/g, '').trim()
+    return text
+      .replace(/\x00/g, '') // Remove null bytes
+      .replace(/\x01/g, '') // Remove start of heading
+      .replace(/[^\x20-\xFF]/g, '') // Allow standard + extended ASCII
+      .trim()
   }
 
   const truncate = (text: string, maxLength: number): string => {
@@ -27,8 +31,8 @@ async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<B
   }
 
   const formatLine = (qty: number, name: string): number[] => {
-    const qtyStr = (qty.toString() + 'x').padEnd(maxQtyWidth, ' ')
-    const nameStr = truncate(name, availableItemWidth).padEnd(availableItemWidth, ' ')
+    const qtyStr = qty.toString() + 'x'
+    const nameStr = truncate(name, availableItemWidth)
     return [...Buffer.from(`${qtyStr} ${nameStr} `, 'utf-8'), 0x0a]
   }
 
@@ -40,27 +44,44 @@ async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<B
 
   // Header
   lines.push(
-    0x1b,
-    0x74,
-    0x10, // Windows Latin
+    0x1d,
+    0xf9,
+    0x37,
+    0x08,
     0x1b,
     0x61,
     0x01, // Center align
     0x1b,
     0x61,
-    0x00,
-    ...Buffer.from(`Pedido: ${sale.id}`, 'utf-8'),
-    0x0a,
-    ...Buffer.from(`Data: ${formatDate(sale.createdAt)}`, 'utf-8'),
-    0x0a,
-    0x0a
+    0x00
+  )
+  // bold and bigger
+  lines.push(
+    0x1b,
+    0x45,
+    0x01, // bold
+    0x1b,
+    0x21,
+    0x10 // double height
+  )
+  lines.push(...Buffer.from(`Pedido: ${sale.id}`, 'utf-8'), 0x1b, 0x21, 0x00)
+  lines.push(0x0a, ...Buffer.from(`Data: ${formatDate(sale.createdAt)}`, 'utf-8'), 0x0a)
+
+  lines.push(
+    0x1b,
+    0x45,
+    0x01, // bold
+    0x1b,
+    0x21,
+    0x10 // double height
   )
 
   // Items
   items.forEach((item) => {
     lines.push(...formatLine(item.quantity, item.product.name))
   })
-
+  lines.push(0x0a)
+  lines.push(0x1b, 0x21, 0x00) // reset font
   // Footer
   lines.push(...Buffer.from('Obrigado pela compra!\n', 'utf-8'))
   lines.push(0x1b, 0x64, 0x03, 0x1d, 0x56, 0x42, 0x00)
