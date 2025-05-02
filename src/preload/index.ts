@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { Sale } from '../main/entities/Sale'
 
 // Custom APIs for renderer
 const api = {
@@ -14,7 +15,7 @@ const api = {
     ipcRenderer.invoke('sell', saleData),
   getSales: () => ipcRenderer.invoke('get-sales'),
   getSale: (saleId: number) => ipcRenderer.invoke('get-sale', saleId),
-  print: (message: string) => ipcRenderer.invoke('print', message)
+  print: (sale: Sale) => ipcRenderer.invoke('print', sale)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

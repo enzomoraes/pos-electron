@@ -54,7 +54,7 @@ export function useSales() {
       `
 
       try {
-        await window.api.print(receipt)
+        await window.api.print(sale)
       } catch (error) {
         toast.error((error as Error).message)
       }

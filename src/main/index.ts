@@ -4,6 +4,7 @@ import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import { AppDataSource } from './database/database'
 import { print } from './printer'
+import { Sale } from './entities/Sale'
 
 function createWindow(): void {
   // Create the browser window.
@@ -146,8 +147,8 @@ ipcMain.handle('get-sale', async (_, id: number) => {
   return sale
 })
 
-ipcMain.handle('print', async (_, text: string) => {
-  await print(text)
+ipcMain.handle('print', async (_, sale: Sale) => {
+  await print(sale)
 })
 
 // This method will be called when Electron has finished

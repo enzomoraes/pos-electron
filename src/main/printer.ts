@@ -1,20 +1,19 @@
-import { USB, Printer } from 'escpos'
+import printHandler from './PrinterHandler'
+import { Sale } from './entities/Sale'
+import { webContents } from 'electron'
 
-export async function print(message: string) {
-  const device = new USB().open()
-  await new Promise<void>((resolve, reject) => {
-    device.open(async function (err) {
-      if (err) {
-        reject(err)
-        return
-      }
-      const options = { encoding: 'GB18030' /* default */ }
+let defaultPrinter = ''
+async function getDefaultPrinter(): Promise<string> {
+  if (defaultPrinter) return defaultPrinter
+  const printers = await webContents.getFocusedWebContents()?.getPrintersAsync()
+  defaultPrinter = printers?.find((printer) => printer.isDefault)?.name ?? 'default'
+  return defaultPrinter
+}
 
-      const printer = new Printer(device, options)
-
-      printer.font('A').align('CT').style('BU').size(1, 1).text(message)
-
-      printer.cut().close(() => resolve)
-    })
-  })
+export async function print(sale: Sale) {
+  const printerName = await getDefaultPrinter()
+  console.log('defaultPrinter: ', printerName)
+  await printHandler.printSale(printerName, sale)
+  // await printHandler.printSale(printerName, sale)
+  // await printHandler.printSale(printerName, sale)
 }
