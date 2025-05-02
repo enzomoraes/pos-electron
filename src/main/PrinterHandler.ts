@@ -2,41 +2,43 @@
 import { exec } from 'child_process'
 import fs from 'fs'
 import { Sale } from './entities/Sale'
+import { SaleItem } from './entities/SaleItem'
 
 const PRINT_WIDTH = 80 // Width of the receipt in characters
-async function escposData(sale: Sale) {
-  const maxQtyWidth = 4 // Max width for quantity (e.g., "9999")
-  const availableItemWidth = PRINT_WIDTH - maxQtyWidth - 4 // 4 spaces for padding
 
-  // Function to truncate long product names (with sanitization)
-  const truncate = (text, maxLength) => {
-    let cleanText = sanitizeText(text) // Remove emojis & unwanted characters
+// ---------------------------
+// ESC/POS Receipt Generation
+// ---------------------------
+
+/**
+ * Generates ESC/POS byte data for a receipt, optionally filtered to a subset of items.
+ */
+async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<Buffer> {
+  const maxQtyWidth = 4
+  const availableItemWidth = PRINT_WIDTH - maxQtyWidth - 4
+
+  const sanitizeText = (text: string): string => {
+    return text.replace(/[^\x00-\x7F]/g, '').trim()
+  }
+
+  const truncate = (text: string, maxLength: number): string => {
+    let cleanText = sanitizeText(text)
     return cleanText.length > maxLength ? cleanText.substring(0, maxLength - 3) + '...' : cleanText
   }
 
-  // Function to format an order line
   const formatLine = (qty: number, name: string): number[] => {
-    let qtyStr = (qty.toString() + 'x').padEnd(maxQtyWidth, ' ')
-    let nameStr = truncate(name, availableItemWidth).padEnd(availableItemWidth, ' ')
-
-    return [
-      ...Buffer.from(`${qtyStr} ${nameStr} `, 'utf-8'),
-      0x0a // New line
-    ]
-  }
-  // Function to remove emojis and unwanted characters
-  const sanitizeText = (text) => {
-    return text
-      .replace(/[^\x00-\x7F]/g, '') // Remove non-UTF8 characters
-      .trim() // Trim extra spaces
+    const qtyStr = (qty.toString() + 'x').padEnd(maxQtyWidth, ' ')
+    const nameStr = truncate(name, availableItemWidth).padEnd(availableItemWidth, ' ')
+    return [...Buffer.from(`${qtyStr} ${nameStr} `, 'utf-8'), 0x0a]
   }
 
-  // Format the date in German style
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date): string => {
     return `${date.toLocaleDateString()} - ${date.toLocaleTimeString()}`
   }
-  let lines = [0x1b, 0x40] // Initialize printer
 
+  let lines: number[] = [0x1b, 0x40] // Initialize printer
+
+  // Header
   lines.push(
     0x1b,
     0x74,
@@ -53,100 +55,89 @@ async function escposData(sale: Sale) {
     0x0a,
     0x0a
   )
-  sale.items.forEach((item) => {
-    for (let i = 0; i < item.quantity; i++) {
-      lines.push(...formatLine(1, item.product.name))
-    }
-  })
-  lines.push(...Buffer.from('Obrigado pela compra!\n', 'utf-8'))
 
-  lines.push(
-    0x0a,
-    0x0a,
-    0x0a,
-    0x0a,
-    0x0a, // Feed paper
-    0x1d,
-    0x56,
-    0x00, // Cut paper
-    0x1b,
-    0x40 // Reset printer
-  )
+  // Items
+  items.forEach((item) => {
+    lines.push(...formatLine(item.quantity, item.product.name))
+  })
+
+  // Footer
+  lines.push(...Buffer.from('Obrigado pela compra!\n', 'utf-8'))
+  lines.push(0x1b, 0x64, 0x03, 0x1d, 0x56, 0x42, 0x00)
 
   return Buffer.from(lines)
 }
 
+// ---------------------------
+// Print Handler
+// ---------------------------
+
 class PrintHandler {
   private printQueue: {
     printerName: string
-    rawData: Buffer<ArrayBuffer>
+    rawData: Buffer
     resolve: Function
     reject: Function
-  }[]
-  private isPrinting: boolean
-  constructor() {
-    this.printQueue = []
-    this.isPrinting = false
-  }
+  }[] = []
+  private isPrinting: boolean = false
 
   async processPrintQueue() {
     if (this.isPrinting || this.printQueue.length === 0) return
-
     this.isPrinting = true
+
     const next = this.printQueue.shift()
     if (!next) {
       this.isPrinting = false
       return
     }
+
     const { printerName, rawData, resolve, reject } = next
 
     try {
       await this.__printRawData(printerName, rawData)
-      resolve() // Resolve the promise when done
+      resolve()
     } catch (error) {
       console.error(`Error printing: ${error instanceof Error ? error.message : String(error)}`)
       reject(error)
     } finally {
       this.isPrinting = false
-      this.processPrintQueue() // Process the next job
+      this.processPrintQueue()
     }
   }
 
-  private queuePrintJob(printerName, rawData) {
+  private queuePrintJob(printerName: string, rawData: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       this.printQueue.push({ printerName, rawData, resolve, reject })
       this.processPrintQueue()
     })
   }
 
-  private async __printRawData(printerName, rawData) {
+  private __printRawData(printerName: string, rawData: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       const tempFile = `receipt${Date.now()}.bin`
       fs.writeFileSync(tempFile, rawData, 'binary')
 
       const command =
         process.platform === 'win32'
-          ? // ? `copy /B ${tempFile} \\\\localhost\\${printerName} && timeout /t 2 && net stop spooler && net start spooler`
-            `copy /B ${tempFile} \\\\localhost\\${printerName}`
-          : `cancel -a && lpr -P "${printerName}" -o raw ${tempFile}`
+          ? `copy /B ${tempFile} \\\\localhost\\${printerName}`
+          : `lpr -P "${printerName}" -o raw ${tempFile}`
 
-      exec(command, (error, stdout, stderr) => {
+      exec(command, (error) => {
         fs.unlinkSync(tempFile)
         if (error) {
           reject(error)
         } else {
-          console.log(`Printed successfully: ${stdout || stderr}`)
-          setTimeout(resolve, 3000) // Delay 2 seconds before resolving
+          resolve()
         }
       })
     })
   }
 
-  async printSale(printerName: string, sale: Sale) {
-    console.log('Printing at: ', printerName)
-    let escData = await escposData(sale)
-    const rawData = Buffer.from(escData)
-    await this.queuePrintJob(printerName, rawData)
+  async printSale(printerName: string, sale: Sale): Promise<void> {
+    for (const item of sale.items) {
+      const receiptData = await escposData(sale, [item])
+      await this.queuePrintJob(printerName, receiptData)
+    }
   }
 }
 
