@@ -22,7 +22,7 @@ async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<B
   }
 
   const truncate = (text: string, maxLength: number): string => {
-    let cleanText = sanitizeText(text)
+    const cleanText = sanitizeText(text)
     return cleanText.length > maxLength ? cleanText.substring(0, maxLength - 3) + '...' : cleanText
   }
 
@@ -36,7 +36,7 @@ async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<B
     return `${date.toLocaleDateString()} - ${date.toLocaleTimeString()}`
   }
 
-  let lines: number[] = [0x1b, 0x40] // Initialize printer
+  const lines: number[] = [0x1b, 0x40] // Initialize printer
 
   // Header
   lines.push(
@@ -76,8 +76,8 @@ class PrintHandler {
   private printQueue: {
     printerName: string
     rawData: Buffer
-    resolve: Function
-    reject: Function
+    resolve: () => void
+    reject: (err: unknown) => void
   }[] = []
   private isPrinting: boolean = false
 

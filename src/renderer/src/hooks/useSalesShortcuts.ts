@@ -1,12 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect } from 'react'
 
-export function useSaleShortcuts(onClear: () => void, onClose: () => void) {
+export function useSaleShortcuts(onClear: () => void, onClose: () => void): void {
   useEffect(() => {
-    const handle = (e: KeyboardEvent) => {
-      if (e.key === 'F3') { e.preventDefault(); onClear(); }
-      if (e.key === 'F5') { e.preventDefault(); onClose(); }
-    };
-    window.addEventListener('keydown', handle);
-    return () => window.removeEventListener('keydown', handle);
-  }, [onClear, onClose]);
+    const handle = (e: KeyboardEvent): void => {
+      if (e.key === 'F3') {
+        e.preventDefault()
+        onClear()
+      }
+      if (e.key === 'F5') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handle)
+    return () => window.removeEventListener('keydown', handle)
+  }, [onClear, onClose])
 }

@@ -5,11 +5,11 @@ import { useProducts } from '../hooks/useProducts'
 
 const Products = () => {
   const navigate = useNavigate()
-  const { products, setProducts, refreshProducts, removeProduct } = useProducts()
+  const { products, refreshProducts, removeProduct } = useProducts()
 
   useEffect(() => {
     refreshProducts()
-  }, [])
+  }, [refreshProducts])
 
   const handleUpdateClick = useCallback(
     (productId: number) => {
@@ -35,7 +35,7 @@ const Products = () => {
         ]
       })
     },
-    [setProducts]
+    [removeProduct]
   )
 
   return (

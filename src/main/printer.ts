@@ -10,7 +10,7 @@ async function getDefaultPrinter(): Promise<string> {
   return defaultPrinter
 }
 
-export async function print(sale: Sale) {
+export async function print(sale: Sale): Promise<void> {
   const printerName = await getDefaultPrinter()
   await printHandler.printSale(printerName, sale)
 }

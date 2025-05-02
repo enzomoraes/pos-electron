@@ -3,6 +3,7 @@ import { Product } from '../../../main/entities/Product'
 import { SaleItem } from '../../../main/entities/SaleItem'
 import { toast } from 'react-toastify'
 import { Sale } from '../../../main/entities/Sale'
+import { useSales } from './useSales'
 
 /**
  * Hook de carrinho que sincroniza estoque dos produtos.
@@ -13,6 +14,7 @@ export function useCart(
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>
 ) {
   const [cart, setCart] = useState<SaleItem[]>([])
+  const { printSale } = useSales()
 
   const addToCart = useCallback(
     (product: Product) => {
@@ -158,20 +160,21 @@ export function useCart(
       return
     }
     try {
-      await window.api.sell({
+      const sale = await window.api.sell({
         items: cart.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
           price: item.price
         }))
       })
+      printSale(sale.id)
       toast.success('Sale completed successfully!')
       clearCart()
     } catch (err) {
       console.error(err)
       toast.error('Error completing sale. Please try again.')
     }
-  }, [cart, clearCart])
+  }, [cart, clearCart, printSale])
 
   return {
     cart,

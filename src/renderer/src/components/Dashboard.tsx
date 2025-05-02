@@ -8,7 +8,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchSales()
-  }, [])
+  }, [fetchSales])
 
   const totalRevenue = sales.reduce((acc, sale) => acc + sale.total, 0)
   const totalProductsSold = sales.reduce(

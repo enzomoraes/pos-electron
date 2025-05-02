@@ -29,7 +29,7 @@ const UpdateProduct = () => {
     }
 
     fetchProduct()
-  }, [id, reset, navigate])
+  }, [id, reset, navigate, fetchProductById])
 
   const onSubmit = async (data: { name: string; price: number; stock: number }) => {
     await updateProduct(parseInt(id!), data)

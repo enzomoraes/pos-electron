@@ -41,17 +41,14 @@ export function useProducts() {
     []
   )
 
-  const fetchProductById = useCallback(
-    async (id: number) => {
-      const product = await window.api.getProduct(id)
-      return {
-        ...product,
-        price: product.price / 100,
-        stock: product.stock / 100
-      }
-    },
-    [products]
-  )
+  const fetchProductById = useCallback(async (id: number) => {
+    const product = await window.api.getProduct(id)
+    return {
+      ...product,
+      price: product.price / 100,
+      stock: product.stock / 100
+    }
+  }, [])
 
   useEffect(() => {
     fetchProducts()
