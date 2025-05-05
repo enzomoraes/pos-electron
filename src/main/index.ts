@@ -78,14 +78,24 @@ ipcMain.handle('update-product', async (_, id, productData) => {
 
 ipcMain.handle(
   'sell',
-  async (_, saleData: { items: { productId: number; quantity: number; price: number }[] }) => {
+  async (
+    _,
+    saleData: {
+      items: { productId: number; quantity: number; price: number }[]
+      info: { clientName: string; paymentMethod: string }
+    }
+  ) => {
     const saleRepo = AppDataSource.getRepository('Sale')
     const saleItemRepo = AppDataSource.getRepository('SaleItem')
     const productRepo = AppDataSource.getRepository('Product')
-
+    console.log('Sale data:', saleData)
     const total = saleData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
     // Create a new sale
-    const newSale = saleRepo.create({ total })
+    const newSale = saleRepo.create({
+      total,
+      clientName: saleData.info.clientName,
+      paymentMethod: saleData.info.paymentMethod
+    })
     const savedSale = await saleRepo.save(newSale)
 
     // Create sale items

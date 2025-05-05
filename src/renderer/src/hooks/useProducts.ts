@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Product } from '../../../main/entities/Product'
 
-export function useProducts() {
+export function useProducts(): {
+  products: Product[]
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>
+  refreshProducts: () => Promise<void>
+  removeProduct: (productId: number) => Promise<void>
+  createProduct: (product: { name: string; price: number; stock: number }) => Promise<void>
+  updateProduct: (
+    id: number,
+    product: { name: string; price: number; stock: number }
+  ) => Promise<void>
+  fetchProductById: (id: number) => Promise<Product>
+} {
   const [products, setProducts] = useState<Product[]>([])
 
   const fetchProducts = useCallback(async () => {

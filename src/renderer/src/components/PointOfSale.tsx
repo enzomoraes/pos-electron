@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from 'react'
+import { useModal } from '@renderer/hooks/useModal'
+import React, { useCallback, useState } from 'react'
 import { toast } from 'react-toastify'
-import { useProducts } from '../hooks/useProducts'
 import { useCart } from '../hooks/useCart'
 import { useSaleShortcuts } from '../hooks/useSalesShortcuts'
+import { CloseSale } from './CloseSale'
+import { Modal } from './Modal'
 
 const PointOfSale: React.FC = () => {
-  const { products, setProducts, refreshProducts } = useProducts()
   const {
     cart,
     addToCart,
@@ -14,28 +15,19 @@ const PointOfSale: React.FC = () => {
     decreaseQuantity,
     updateQuantity,
     changePrice,
-    closeSale: closeSaleHook,
-    total
-  } = useCart(products, setProducts)
+    total,
+    products
+  } = useCart()
 
   const [editingPriceId, setEditingPriceId] = useState<number | null>(null)
   const [priceInputValue, setPriceInputValue] = useState<string>('')
   const [editingQtyId, setEditingQtyId] = useState<number | null>(null)
   const [qtyInputValue, setQtyInputValue] = useState<string>('')
 
-  // Wrap clear and sale to also refresh products
-  const handleClearCart = useCallback(() => {
-    clearCartHook()
-    refreshProducts()
-  }, [clearCartHook, refreshProducts])
-
-  const handleCloseSale = useCallback(() => {
-    closeSaleHook()
-    refreshProducts()
-  }, [closeSaleHook, refreshProducts])
+  const { isOpen, open, close } = useModal()
 
   // Keyboard shortcuts
-  useSaleShortcuts(handleClearCart, handleCloseSale)
+  useSaleShortcuts(clearCartHook, open)
 
   // Price editing handlers
   const handlePriceClick = useCallback((id: number, unitPrice: number) => {
@@ -282,7 +274,7 @@ const PointOfSale: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button
-            onClick={handleClearCart}
+            onClick={clearCartHook}
             style={{
               backgroundColor: '#ff4d4d',
               color: '#fff',
@@ -296,7 +288,7 @@ const PointOfSale: React.FC = () => {
             Clear Cart (F3)
           </button>
           <button
-            onClick={handleCloseSale}
+            onClick={open}
             style={{
               backgroundColor: '#4caf50',
               color: '#fff',
@@ -311,6 +303,10 @@ const PointOfSale: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <Modal isOpen={isOpen} onClose={close}>
+        <CloseSale onClose={close} onConfirm={close} />
+      </Modal>
     </div>
   )
 }

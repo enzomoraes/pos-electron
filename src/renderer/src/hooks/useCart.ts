@@ -1,19 +1,28 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Product } from '../../../main/entities/Product'
-import { SaleItem } from '../../../main/entities/SaleItem'
+import { useCallback, useContext, useMemo } from 'react'
 import { toast } from 'react-toastify'
+import { Product } from '../../../main/entities/Product'
 import { Sale } from '../../../main/entities/Sale'
+import { SaleItem } from '../../../main/entities/SaleItem'
+import { SaleContext, SaleInfo } from '../contexts/SaleContext'
+import { useProducts } from './useProducts'
 import { useSales } from './useSales'
 
-/**
- * Hook de carrinho que sincroniza estoque dos produtos.
- * @param products Lista de produtos e seu setter de estado.
- */
-export function useCart(
-  products: Product[],
+export function useCart(): {
+  cart: SaleItem[]
+  addToCart: (product: Product) => void
+  increaseQuantity: (id: number) => void
+  decreaseQuantity: (id: number) => void
+  updateQuantity: (id: number, value: number) => void
+  changePrice: (id: number, newPriceCents: number) => void
+  clearCart: () => void
+  closeSale: (sale: SaleInfo) => void
+  products: Product[]
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>
-) {
-  const [cart, setCart] = useState<SaleItem[]>([])
+  total: number
+} {
+  const { products, setProducts, refreshProducts } = useProducts()
+
+  const { cart, setCart } = useContext(SaleContext)
   const { printSale } = useSales()
 
   const addToCart = useCallback(
@@ -23,8 +32,7 @@ export function useCart(
         return
       }
       const quantityToIncrease = Math.min(product.stock, 1)
-
-      setCart((prev) => {
+      setCart((prev: SaleItem[]) => {
         const existing = prev.find((item) => item.product.id === product.id)
         if (existing) {
           return prev.map((item) =>
@@ -50,7 +58,7 @@ export function useCart(
         prev.map((p) => (p.id === product.id ? { ...p, stock: p.stock - quantityToIncrease } : p))
       )
     },
-    [setProducts]
+    [setCart, setProducts]
   )
 
   const increaseQuantity = useCallback(
@@ -75,7 +83,7 @@ export function useCart(
         prev.map((p) => (p.id === id ? { ...p, stock: p.stock - quantityToIncrease } : p))
       )
     },
-    [cart, products, setProducts]
+    [setCart, cart, products, setProducts]
   )
 
   const decreaseQuantity = useCallback(
@@ -98,7 +106,7 @@ export function useCart(
         prev.map((p) => (p.id === id ? { ...p, stock: p.stock + quantityToDecrease } : p))
       )
     },
-    [cart, setProducts]
+    [setCart, cart, setProducts]
   )
 
   const updateQuantity = useCallback(
@@ -118,18 +126,21 @@ export function useCart(
       // ajustar estoque: diminuir ou restaurar conforme delta
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, stock: p.stock - delta } : p)))
     },
-    [cart, products, setProducts]
+    [setCart, cart, products, setProducts]
   )
 
-  const changePrice = useCallback((id: number, newPriceCents: number) => {
-    if (isNaN(newPriceCents) || newPriceCents < 0) {
-      toast.error('Invalid price')
-      return
-    }
-    setCart((prev) =>
-      prev.map((item) => (item.product.id === id ? { ...item, price: newPriceCents } : item))
-    )
-  }, [])
+  const changePrice = useCallback(
+    (id: number, newPriceCents: number) => {
+      if (isNaN(newPriceCents) || newPriceCents < 0) {
+        toast.error('Invalid price')
+        return
+      }
+      setCart((prev) =>
+        prev.map((item) => (item.product.id === id ? { ...item, price: newPriceCents } : item))
+      )
+    },
+    [setCart]
+  )
 
   const total = useMemo(
     () => cart.reduce((sum, item) => sum + (item.price * item.quantity) / 100, 0),
@@ -137,44 +148,40 @@ export function useCart(
   )
 
   const clearCart = useCallback(() => {
-    // restaurar estoque completo
-    setProducts((prev) => {
-      const updated = [...prev]
-      cart.forEach((item) => {
-        const idx = updated.findIndex((p) => p.id === item.product.id)
-        if (idx >= 0) {
-          updated[idx] = {
-            ...updated[idx],
-            stock: updated[idx].stock + item.quantity
-          }
-        }
-      })
-      return updated
-    })
+    refreshProducts()
     setCart([])
-  }, [cart, setProducts])
+  }, [setCart, refreshProducts])
 
-  const closeSale = useCallback(async () => {
-    if (cart.length === 0) {
-      toast.warn('Cart is empty. Add products before closing the sale.')
-      return
-    }
-    try {
-      const sale = await window.api.sell({
-        items: cart.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-          price: item.price
-        }))
-      })
-      printSale(sale.id)
-      toast.success('Sale completed successfully!')
-      clearCart()
-    } catch (err) {
-      console.error(err)
-      toast.error('Error completing sale. Please try again.')
-    }
-  }, [cart, clearCart, printSale])
+  const closeSale = useCallback(
+    async (sale: SaleInfo) => {
+      if (cart.length === 0) {
+        toast.warn('Cart is empty. Add products before closing the sale.')
+        return
+      }
+      console.log('Closing sale with cart and sale', cart, sale)
+      try {
+        const response = await window.api.sell({
+          items: cart.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          info: {
+            clientName: sale.clientName,
+            paymentMethod: sale.paymentMethod
+          }
+        })
+        printSale(response.id)
+        toast.success('Sale completed successfully!')
+        clearCart()
+        refreshProducts()
+      } catch (err) {
+        console.error(err)
+        toast.error('Error completing sale. Please try again.')
+      }
+    },
+    [cart, clearCart, printSale, refreshProducts]
+  )
 
   return {
     cart,
@@ -185,6 +192,8 @@ export function useCart(
     changePrice,
     clearCart,
     closeSale,
+    products,
+    setProducts,
     total
   }
 }

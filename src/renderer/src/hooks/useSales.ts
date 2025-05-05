@@ -2,7 +2,11 @@ import { useCallback, useState } from 'react'
 import { toast } from 'react-toastify'
 import { Sale } from '../../../main/entities/Sale'
 
-export function useSales() {
+export function useSales(): {
+  sales: Sale[]
+  fetchSales: () => Promise<void>
+  printSale: (saleId: number) => Promise<void>
+} {
   const [sales, setSales] = useState<Sale[]>([])
 
   const fetchSales = useCallback(async () => {

@@ -38,6 +38,16 @@ const Sales = () => {
               }}
             >
               <h2 style={{ margin: '0 0 10px 0', fontSize: '20px' }}>Sale #{sale.id}</h2>
+              {sale.clientName && (
+                <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
+                  Client: {sale.clientName}
+                </p>
+              ) }
+              {sale.paymentMethod && (
+                <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
+                  Forma de pagamento: {sale.paymentMethod}
+                </p>
+              )}
               <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
                 Date: {sale.createdAt.toLocaleDateString()} - {sale.createdAt.toLocaleTimeString()}
               </p>

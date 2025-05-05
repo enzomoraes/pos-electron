@@ -12,6 +12,12 @@ export class Sale {
   @Column('decimal', { precision: 10, scale: 2 })
   total!: number
 
+  @Column('varchar', { default: '' })
+  clientName!: string
+
+  @Column('varchar', { default: 'pix' })
+  paymentMethod!: 'dinheiro' | 'cartão' | 'pix'
+
   @CreateDateColumn()
   createdAt!: Date
 }

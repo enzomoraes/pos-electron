@@ -20,6 +20,10 @@ declare global {
       removeProduct: (productId: number) => Promise<void>
       sell: (saleData: {
         items: { productId: number; quantity: number; price: number }[]
+        info: {
+          clientName: string
+          paymentMethod: 'dinheiro' | 'cartão' | 'pix'
+        }
       }) => Promise<Sale>
       getSales: () => Promise<Sale[]>
       getSale: (id: number) => Promise<Sale>
