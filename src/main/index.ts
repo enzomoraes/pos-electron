@@ -1,3 +1,4 @@
+import log from './logger'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
@@ -7,7 +8,7 @@ import { print } from './printer'
 import { Sale } from './entities/Sale'
 import { getAutoUpdater } from './autoUpdater'
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -37,6 +38,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  return mainWindow
 }
 
 ipcMain.handle('get-products', async () => {
@@ -191,8 +193,23 @@ app.whenReady().then(async () => {
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
+
+  log.info('Log from the main process', app.isPackaged)
   if (app.isPackaged) {
     const autoUpdater = getAutoUpdater()
+    autoUpdater.on('error', (error) => {
+      log.error('Error on autoUpdater', error)
+    })
+    autoUpdater.on('checking-for-update', () => {
+      log.info('Checking for update...')
+    })
+    autoUpdater.on('update-available', () => {
+      log.info('Update available')
+    })
+    autoUpdater.on('update-not-available', () => {
+      log.info('No update available')
+    })
+
     await autoUpdater.checkForUpdatesAndNotify({
       body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
       title: 'Atualização Disponível'
