@@ -1,10 +1,10 @@
 {
   "name": "pos-electron",
   "version": "1.0.1",
-  "description": "An Electron application with React and TypeScript",
+  "description": "A POS application",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "enzomoraes",
+  "homepage": "https://github.com/enzomoraes/pos-electron",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache . --fix",
