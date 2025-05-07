@@ -191,11 +191,13 @@ app.whenReady().then(async () => {
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
-  const autoUpdater = getAutoUpdater()
-  await autoUpdater.checkForUpdatesAndNotify({
-    body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
-    title: 'Atualização Disponível'
-  })
+  if (app.isPackaged) {
+    const autoUpdater = getAutoUpdater()
+    await autoUpdater.checkForUpdatesAndNotify({
+      body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
+      title: 'Atualização Disponível'
+    })
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
