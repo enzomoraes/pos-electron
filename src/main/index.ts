@@ -2,11 +2,13 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
+import { getAutoUpdater } from './autoUpdater'
 import { AppDataSource } from './database/database'
-import { print } from './printer'
 import { Sale } from './entities/Sale'
+import log from './logger'
+import { print } from './printer'
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -36,6 +38,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  return mainWindow
 }
 
 ipcMain.handle('get-products', async () => {
@@ -45,7 +48,6 @@ ipcMain.handle('get-products', async () => {
 })
 
 ipcMain.handle('create-product', async (_, productData) => {
-  console.log('Create product data:', productData)
   const productRepo = AppDataSource.getRepository('Product')
   const newProduct = productRepo.create(productData)
   const savedProduct = await productRepo.save(newProduct)
@@ -88,7 +90,7 @@ ipcMain.handle(
     const saleRepo = AppDataSource.getRepository('Sale')
     const saleItemRepo = AppDataSource.getRepository('SaleItem')
     const productRepo = AppDataSource.getRepository('Product')
-    console.log('Sale data:', saleData)
+
     const total = saleData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
     // Create a new sale
     const newSale = saleRepo.create({
@@ -170,6 +172,10 @@ ipcMain.handle('print', async (_, sale: Sale) => {
   await print(sale)
 })
 
+ipcMain.handle('get-version', () => {
+  return app.getVersion()
+})
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -192,6 +198,18 @@ app.whenReady().then(async () => {
 
   createWindow()
 
+  log.transports.file.level = 'info'
+  log.info('Log from the main process. Version:', app.getVersion())
+  const autoUpdater = getAutoUpdater()
+  autoUpdater.logger = log
+  autoUpdater.on('update-downloaded', () => {
+    autoUpdater.quitAndInstall(false, true)
+  })
+  await autoUpdater.checkForUpdatesAndNotify({
+    body: 'Uma nova versão está disponível. O aplicativo será fechado para atualização.',
+    title: 'Atualização Disponível'
+  })
+
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -207,6 +225,5 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

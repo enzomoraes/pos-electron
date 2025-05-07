@@ -29,6 +29,24 @@ $ npm install
 $ npm run dev
 ```
 
+### Publishing
+
+1. Update version in `package.json` to match the tag
+
+2. Commit and push all changes:
+   ```bash
+   git add .
+   git commit -m "Your commit message"
+   git push
+   ```
+
+5. Run the GitHub Action workflow
+
+6. Publish the release:
+   - Go to GitHub Releases page
+   - Find the draft release created by the GitHub Action
+   - Review and publish the release
+
 ### Build
 
 ```bash

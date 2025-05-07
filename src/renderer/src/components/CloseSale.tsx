@@ -1,6 +1,6 @@
 import { SaleInfo } from '@renderer/contexts/SaleContext'
 import { useCart } from '@renderer/hooks/useCart'
-import { FC } from 'react'
+import { FC, useEffect } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface CloseSaleProps {
@@ -18,6 +18,19 @@ export const CloseSale: FC<CloseSaleProps> = ({ onClose, onConfirm }) => {
   } = useForm<SaleInfo>({
     defaultValues: { clientName: '', paymentMethod: 'pix' }
   })
+
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscapeKey)
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey)
+    }
+  }, [onClose])
 
   const handleFormSubmit: SubmitHandler<SaleInfo> = (data) => {
     closeSale(data)
@@ -48,6 +61,7 @@ export const CloseSale: FC<CloseSaleProps> = ({ onClose, onConfirm }) => {
           Nome do Cliente:
         </label>
         <input
+          autoFocus
           id="clientName"
           {...register('clientName')}
           style={{

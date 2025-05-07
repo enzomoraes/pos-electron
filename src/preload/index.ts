@@ -18,7 +18,8 @@ const api = {
   getSales: () => ipcRenderer.invoke('get-sales'),
   getSale: (saleId: number) => ipcRenderer.invoke('get-sale', saleId),
   removeSale: (saleId: number) => ipcRenderer.invoke('remove-sale', saleId),
-  print: (sale: Sale) => ipcRenderer.invoke('print', sale)
+  print: (sale: Sale) => ipcRenderer.invoke('print', sale),
+  getVersion: () => ipcRenderer.invoke('get-version')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
