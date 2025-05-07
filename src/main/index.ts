@@ -7,6 +7,7 @@ import { AppDataSource } from './database/database'
 import { print } from './printer'
 import { Sale } from './entities/Sale'
 import { getAutoUpdater } from './autoUpdater'
+import { dialog } from 'electron'
 
 function createWindow(): BrowserWindow {
   // Create the browser window.
@@ -195,10 +196,19 @@ app.whenReady().then(async () => {
   createWindow()
 
   log.transports.file.level = 'info'
-  log.info('Log from the main process. Version: ', app.getVersion())
+  log.info('Log from the main process. Version:', app.getVersion())
   const autoUpdater = getAutoUpdater()
   autoUpdater.logger = log
-
+  autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox({
+      type: 'info',
+      buttons: ['OK'],
+      title: 'Atualização',
+      message:
+        'O aplicativo será atualizado para a nova versão. Faça o backup do arquivo database.sqlite antes de atualizar.'
+    })
+    autoUpdater.quitAndInstall()
+  })
   await autoUpdater.checkForUpdatesAndNotify({
     body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
     title: 'Atualização Disponível'
@@ -219,6 +229,5 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
