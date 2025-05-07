@@ -46,7 +46,6 @@ ipcMain.handle('get-products', async () => {
 })
 
 ipcMain.handle('create-product', async (_, productData) => {
-  console.log('Create product data:', productData)
   const productRepo = AppDataSource.getRepository('Product')
   const newProduct = productRepo.create(productData)
   const savedProduct = await productRepo.save(newProduct)
@@ -89,7 +88,7 @@ ipcMain.handle(
     const saleRepo = AppDataSource.getRepository('Sale')
     const saleItemRepo = AppDataSource.getRepository('SaleItem')
     const productRepo = AppDataSource.getRepository('Product')
-    console.log('Sale data:', saleData)
+
     const total = saleData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
     // Create a new sale
     const newSale = saleRepo.create({
@@ -193,11 +192,10 @@ app.whenReady().then(async () => {
 
   createWindow()
   const autoUpdater = getAutoUpdater()
-  const updates = await autoUpdater.checkForUpdatesAndNotify({
+  await autoUpdater.checkForUpdatesAndNotify({
     body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
     title: 'Atualização Disponível'
   })
-  console.log(updates)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

@@ -158,7 +158,7 @@ export function useCart(): {
         toast.warn('Cart is empty. Add products before closing the sale.')
         return
       }
-      console.log('Closing sale with cart and sale', cart, sale)
+
       try {
         const response = await window.api.sell({
           items: cart.map((item) => ({

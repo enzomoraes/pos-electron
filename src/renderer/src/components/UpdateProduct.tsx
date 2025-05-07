@@ -21,8 +21,7 @@ const UpdateProduct = () => {
       try {
         const product = await fetchProductById(parseInt(id!))
         reset(product)
-      } catch (error) {
-        console.error('Failed to fetch product', error)
+      } catch (_) {
         toast.error('Error fetching product!')
         navigate('/products')
       }

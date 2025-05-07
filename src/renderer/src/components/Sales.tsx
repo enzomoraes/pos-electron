@@ -60,7 +60,7 @@ const Sales = () => {
                 <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
                   Client: {sale.clientName}
                 </p>
-              ) }
+              )}
               {sale.paymentMethod && (
                 <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ccc' }}>
                   Forma de pagamento: {sale.paymentMethod}

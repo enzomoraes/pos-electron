@@ -141,9 +141,10 @@ class PrintHandler {
       fs.writeFileSync(tempFile, rawData, 'binary')
 
       // Escape printer name for command line
-      const escapedPrinterName = process.platform === 'win32'
-        ? printerName.replace(/"/g, '\\"') // Escape quotes for Windows
-        : printerName.replace(/"/g, '\\"').replace(/ /g, '\\ ') // Escape spaces and quotes for Linux
+      const escapedPrinterName =
+        process.platform === 'win32'
+          ? printerName.replace(/"/g, '\\"') // Escape quotes for Windows
+          : printerName.replace(/"/g, '\\"').replace(/ /g, '\\ ') // Escape spaces and quotes for Linux
 
       const command =
         process.platform === 'win32'
