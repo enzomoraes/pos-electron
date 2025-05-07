@@ -9,6 +9,7 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    environment: "default environment"
 
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
