@@ -157,6 +157,15 @@ ipcMain.handle('get-sale', async (_, id: number) => {
   return sale
 })
 
+ipcMain.handle('remove-sale', async (_, id: number) => {
+  const saleRepo = AppDataSource.getRepository('Sale')
+  const sale = await saleRepo.findOne({ where: { id } })
+  if (!sale) {
+    throw new Error('Sale not found')
+  }
+  await saleRepo.remove(sale)
+})
+
 ipcMain.handle('print', async (_, sale: Sale) => {
   await print(sale)
 })

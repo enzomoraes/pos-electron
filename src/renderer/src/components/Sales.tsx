@@ -1,12 +1,30 @@
 import { useEffect } from 'react'
+import { confirmAlert } from 'react-confirm-alert'
 import { useSales } from '../hooks/useSales'
 
 const Sales = () => {
-  const { sales, fetchSales, printSale } = useSales()
+  const { sales, fetchSales, printSale, removeSale } = useSales()
 
   useEffect(() => {
     fetchSales()
   }, [fetchSales])
+
+  const handleRemoveClick = (saleId: number) => {
+    confirmAlert({
+      title: 'Remover venda',
+      message: 'Tem certeza que deseja remover esta venda?',
+      buttons: [
+        {
+          label: 'Sim',
+          onClick: () => removeSale(saleId)
+        },
+        {
+          label: 'Não',
+          onClick: () => {}
+        }
+      ]
+    })
+  }
 
   return (
     <div
@@ -79,24 +97,44 @@ const Sales = () => {
               >
                 Total: R${sale.total.toFixed(2)}
               </h3>
-              <button
-                onClick={() => printSale(sale.id)}
-                style={{
-                  backgroundColor: '#4caf50',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  transition: 'background-color 0.3s ease'
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#45a049')}
-                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#4caf50')}
-              >
-                Print Sale
-              </button>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => printSale(sale.id)}
+                  style={{
+                    backgroundColor: '#4caf50',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.3s ease'
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#45a049')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#4caf50')}
+                >
+                  Print Sale
+                </button>
+                <button
+                  onClick={() => handleRemoveClick(sale.id)}
+                  style={{
+                    backgroundColor: '#d32f2f',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.3s ease'
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#c62828')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#d32f2f')}
+                >
+                  Remove Sale
+                </button>
+              </div>
             </li>
           ))}
         </ul>

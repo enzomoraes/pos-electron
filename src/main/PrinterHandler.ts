@@ -66,6 +66,8 @@ async function escposData(sale: Sale, items: SaleItem[] = sale.items): Promise<B
   )
   lines.push(...Buffer.from(`Pedido: ${sale.id}`, 'utf-8'), 0x1b, 0x21, 0x00)
   lines.push(0x0a, ...Buffer.from(`Data: ${formatDate(sale.createdAt)}`, 'utf-8'), 0x0a)
+  lines.push(0x0a, ...Buffer.from(`Cliente: ${sale.clientName}`, 'utf-8'), 0x0a)
+  lines.push(0x0a, ...Buffer.from(`Forma de Pagamento: ${sale.paymentMethod}`, 'utf-8'), 0x0a)
 
   lines.push(
     0x1b,
@@ -138,10 +140,15 @@ class PrintHandler {
       const tempFile = `receipt${Date.now()}.bin`
       fs.writeFileSync(tempFile, rawData, 'binary')
 
+      // Escape printer name for command line
+      const escapedPrinterName = process.platform === 'win32'
+        ? printerName.replace(/"/g, '\\"') // Escape quotes for Windows
+        : printerName.replace(/"/g, '\\"').replace(/ /g, '\\ ') // Escape spaces and quotes for Linux
+
       const command =
         process.platform === 'win32'
-          ? `copy /B ${tempFile} \\\\localhost\\${printerName}`
-          : `lpr -P "${printerName}" -o raw ${tempFile}`
+          ? `copy /B ${tempFile} "\\\\localhost\\${escapedPrinterName}"`
+          : `lpr -P "${escapedPrinterName}" -o raw ${tempFile}`
 
       exec(command, (error) => {
         fs.unlinkSync(tempFile)

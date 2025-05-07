@@ -27,6 +27,7 @@ declare global {
       }) => Promise<Sale>
       getSales: () => Promise<Sale[]>
       getSale: (id: number) => Promise<Sale>
+      removeSale: (id: number) => Promise<void>
       print: (message: string) => Promise<void>
     }
   }

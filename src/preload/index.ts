@@ -17,6 +17,7 @@ const api = {
   }) => ipcRenderer.invoke('sell', saleData),
   getSales: () => ipcRenderer.invoke('get-sales'),
   getSale: (saleId: number) => ipcRenderer.invoke('get-sale', saleId),
+  removeSale: (saleId: number) => ipcRenderer.invoke('remove-sale', saleId),
   print: (sale: Sale) => ipcRenderer.invoke('print', sale)
 }
 

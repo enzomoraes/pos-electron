@@ -6,6 +6,7 @@ export function useSales(): {
   sales: Sale[]
   fetchSales: () => Promise<void>
   printSale: (saleId: number) => Promise<void>
+  removeSale: (saleId: number) => Promise<void>
 } {
   const [sales, setSales] = useState<Sale[]>([])
 
@@ -33,9 +34,20 @@ export function useSales(): {
     }
   }, [])
 
+  const removeSale = useCallback(async (saleId: number) => {
+    try {
+      await window.api.removeSale(saleId)
+      setSales((prev) => prev.filter((sale) => sale.id !== saleId))
+      toast.success('Sale removed successfully!')
+    } catch (error) {
+      toast.error((error as Error).message)
+    }
+  }, [])
+
   return {
     sales,
     fetchSales,
-    printSale
+    printSale,
+    removeSale
   }
 }
