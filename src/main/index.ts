@@ -194,27 +194,15 @@ app.whenReady().then(async () => {
 
   createWindow()
 
+  log.transports.file.level = 'info'
   log.info('Log from the main process', app.isPackaged)
-  if (app.isPackaged) {
-    const autoUpdater = getAutoUpdater()
-    autoUpdater.on('error', (error) => {
-      log.error('Error on autoUpdater', error)
-    })
-    autoUpdater.on('checking-for-update', () => {
-      log.info('Checking for update...')
-    })
-    autoUpdater.on('update-available', () => {
-      log.info('Update available')
-    })
-    autoUpdater.on('update-not-available', () => {
-      log.info('No update available')
-    })
+  const autoUpdater = getAutoUpdater()
+  autoUpdater.logger = log
 
-    await autoUpdater.checkForUpdatesAndNotify({
-      body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
-      title: 'Atualização Disponível'
-    })
-  }
+  await autoUpdater.checkForUpdatesAndNotify({
+    body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
+    title: 'Atualização Disponível'
+  })
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
