@@ -195,7 +195,7 @@ app.whenReady().then(async () => {
   createWindow()
 
   log.transports.file.level = 'info'
-  log.info('Log from the main process', app.isPackaged)
+  log.info('Log from the main process. Version: ', app.getVersion())
   const autoUpdater = getAutoUpdater()
   autoUpdater.logger = log
 
