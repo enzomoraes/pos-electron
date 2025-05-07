@@ -1,13 +1,12 @@
-import log from './logger'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
-import { AppDataSource } from './database/database'
-import { print } from './printer'
-import { Sale } from './entities/Sale'
 import { getAutoUpdater } from './autoUpdater'
-import { dialog } from 'electron'
+import { AppDataSource } from './database/database'
+import { Sale } from './entities/Sale'
+import log from './logger'
+import { print } from './printer'
 
 function createWindow(): BrowserWindow {
   // Create the browser window.
@@ -204,17 +203,10 @@ app.whenReady().then(async () => {
   const autoUpdater = getAutoUpdater()
   autoUpdater.logger = log
   autoUpdater.on('update-downloaded', () => {
-    dialog.showMessageBox({
-      type: 'info',
-      buttons: ['OK'],
-      title: 'Atualização',
-      message:
-        'O aplicativo será atualizado para a nova versão. Faça o backup do arquivo database.sqlite antes de atualizar.'
-    })
     autoUpdater.quitAndInstall(false, true)
   })
   await autoUpdater.checkForUpdatesAndNotify({
-    body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
+    body: 'Uma nova versão está disponível. O aplicativo será fechado para atualização.',
     title: 'Atualização Disponível'
   })
 

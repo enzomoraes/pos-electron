@@ -33,19 +33,10 @@ $ npm run dev
 
 1. Update version in `package.json` to match the tag
 
-2. Commit all changes:
+2. Commit and push all changes:
    ```bash
    git add .
    git commit -m "Your commit message"
-   ```
-
-3. Create and push a new tag:
-   ```bash
-   git tag -a v1.0.5 -m "Version 1.0.5" && git push origin v1.0.5 # Replace with your version number
-   ```
-
-4. Push changes to remote:
-   ```bash
    git push
    ```
 
