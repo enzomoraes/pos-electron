@@ -10,6 +10,9 @@ jobs:
   build-windows:
     runs-on: windows-latest
 
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # ou a versão compatível com sua aplicação
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
@@ -29,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist/ # caminho padrão da pasta de output do electron-builder
+          path: dist/
