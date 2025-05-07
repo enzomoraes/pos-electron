@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import { AppDataSource } from './database/database'
 import { print } from './printer'
 import { Sale } from './entities/Sale'
+import { getAutoUpdater } from './autoUpdater'
 
 function createWindow(): void {
   // Create the browser window.
@@ -191,6 +192,12 @@ app.whenReady().then(async () => {
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
+  const autoUpdater = getAutoUpdater()
+  const updates = await autoUpdater.checkForUpdatesAndNotify({
+    body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',
+    title: 'Atualização Disponível'
+  })
+  console.log(updates)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
