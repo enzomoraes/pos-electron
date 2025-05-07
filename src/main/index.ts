@@ -207,7 +207,7 @@ app.whenReady().then(async () => {
       message:
         'O aplicativo será atualizado para a nova versão. Faça o backup do arquivo database.sqlite antes de atualizar.'
     })
-    autoUpdater.quitAndInstall()
+    autoUpdater.quitAndInstall(false, true)
   })
   await autoUpdater.checkForUpdatesAndNotify({
     body: 'Uma nova versão está disponível. Feche o aplicativo e abra novamente para atualizar.',

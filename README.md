@@ -31,22 +31,22 @@ $ npm run dev
 
 ### Publishing
 
-1. Commit all changes:
+1. Update version in `package.json` to match the tag
+
+2. Commit all changes:
    ```bash
    git add .
    git commit -m "Your commit message"
    ```
 
-2. Update version in `package.json` to match the tag
-
 3. Create and push a new tag:
    ```bash
-   git tag -a v1.0.4 -m "Version 1.0.4" && git push origin v1.0.4 # Replace with your version number
+   git tag -a v1.0.5 -m "Version 1.0.5" && git push origin v1.0.5 # Replace with your version number
    ```
 
 4. Push changes to remote:
    ```bash
-   git push origin main
+   git push
    ```
 
 5. Run the GitHub Action workflow
