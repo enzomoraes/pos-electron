@@ -1,6 +1,6 @@
 {
   "name": "pos-electron",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A POS application",
   "main": "./out/main/index.js",
   "author": "enzomoraes",
@@ -29,6 +29,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "better-sqlite3": "^11.9.1",
+    "date-fns": "^4.1.0",
     "electron-log": "^5.4.0",
     "electron-updater": "^6.3.9",
     "react-confirm-alert": "^3.0.6",

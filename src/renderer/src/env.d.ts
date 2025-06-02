@@ -25,7 +25,7 @@ declare global {
           paymentMethod: 'dinheiro' | 'cartão' | 'pix'
         }
       }) => Promise<Sale>
-      getSales: () => Promise<Sale[]>
+      getSales: (salesDate?: string) => Promise<Sale[]>
       getSale: (id: number) => Promise<Sale>
       removeSale: (id: number) => Promise<void>
       print: (message: string) => Promise<void>
