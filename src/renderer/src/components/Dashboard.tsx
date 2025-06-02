@@ -1,3 +1,4 @@
+import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { useSales } from '../hooks/useSales'
 
@@ -6,9 +7,12 @@ const Dashboard = () => {
   const [hoveredMetric, setHoveredMetric] = useState<number | null>(null)
   const [hoveredItem, setHoveredItem] = useState<number | null>(null)
 
+  // Add date state with today as default
+  const [salesDate, setSalesDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'))
+
   useEffect(() => {
-    fetchSales()
-  }, [fetchSales])
+    fetchSales(salesDate)
+  }, [fetchSales, salesDate])
 
   const totalRevenue = sales.reduce((acc, sale) => acc + sale.total, 0)
   const totalProductsSold = sales.reduce(
@@ -78,6 +82,36 @@ const Dashboard = () => {
       >
         Dashboard
       </h1>
+
+      {/* Add date selectors */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '20px',
+          justifyContent: 'center',
+          marginBottom: '40px',
+          alignItems: 'center'
+        }}
+      >
+        <div>
+          <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Data Final</label>
+          <input
+            type="date"
+            value={salesDate}
+            onChange={(e) => {
+              setSalesDate(e.target.value)
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1px solid #333',
+              backgroundColor: '#1e1e1e',
+              color: '#f1f1f1',
+              fontSize: '16px'
+            }}
+          />
+        </div>
+      </div>
 
       <div
         style={{

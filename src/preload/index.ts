@@ -15,7 +15,7 @@ const api = {
     items: { productId: number; quantity: number; price: number }[]
     info: { clientName: string; paymentMethod: string }
   }) => ipcRenderer.invoke('sell', saleData),
-  getSales: () => ipcRenderer.invoke('get-sales'),
+  getSales: (salesDate?: string) => ipcRenderer.invoke('get-sales', salesDate),
   getSale: (saleId: number) => ipcRenderer.invoke('get-sale', saleId),
   removeSale: (saleId: number) => ipcRenderer.invoke('remove-sale', saleId),
   print: (sale: Sale) => ipcRenderer.invoke('print', sale),

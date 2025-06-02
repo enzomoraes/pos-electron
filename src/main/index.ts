@@ -7,6 +7,7 @@ import { AppDataSource } from './database/database'
 import { Sale } from './entities/Sale'
 import log from './logger'
 import { print } from './printer'
+import { endOfDay, startOfDay } from 'date-fns'
 
 function createWindow(): BrowserWindow {
   // Create the browser window.
@@ -126,19 +127,24 @@ ipcMain.handle(
   }
 )
 
-ipcMain.handle('get-sales', async () => {
+ipcMain.handle('get-sales', async (_, salesDate?: string) => {
   const saleRepo = AppDataSource.getRepository('Sale')
-  const sales = await saleRepo.find({
-    relations: {
-      items: {
-        product: true
-      }
-    },
-    order: {
-      createdAt: 'DESC'
-    }
-  })
+  const queryBuilder = saleRepo
+    .createQueryBuilder('sale')
+    .leftJoinAndSelect('sale.items', 'items')
+    .leftJoinAndSelect('items.product', 'product')
+    .orderBy('sale.createdAt', 'DESC')
 
+  if (salesDate) {
+    // Parse the date in local timezone
+    const localDate = new Date(salesDate + 'T00:00:00')
+    queryBuilder.where('sale.createdAt BETWEEN :initialDate AND :finalDate', {
+      initialDate: startOfDay(localDate),
+      finalDate: endOfDay(localDate)
+    })
+  }
+
+  const sales = await queryBuilder.getMany()
   return sales
 })
 
